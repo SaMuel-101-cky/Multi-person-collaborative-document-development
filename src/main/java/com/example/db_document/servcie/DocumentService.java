@@ -1,5 +1,6 @@
 package com.example.db_document.servcie;
 
+import com.example.db_document.exception.BusinessException;
 import com.example.db_document.mapper.DocumentMapper;
 import com.example.db_document.mapper.FolderMapper;
 import com.example.db_document.pojo.Document;
@@ -51,7 +52,7 @@ public class DocumentService {
 
         int rows = documentMapper.softDeleteById(documentId);
         if (rows == 0) {
-            throw new RuntimeException("删除失败，可能已被删除");
+            throw new BusinessException("删除失败，可能已被删除");
         }
 
         System.out.println("文件删除成功: ID " + document);
@@ -76,8 +77,29 @@ public class DocumentService {
 
         int rows = documentMapper.changeFolderId(documentId, newFolderId);
         if (rows == 0) {
-            throw new RuntimeException("移动失败");
+            throw new BusinessException("移动失败");
         }
         System.out.println("文件移动成功: ID " + documentId + " 移动到文件夹ID " + newFolderId);
+    }
+
+    public Document getDocumentById(Long id){
+        Document document = documentMapper.selectById(id);
+        if (document == null) {
+            throw new IllegalArgumentException("文档不存在");
+        }
+        return document;
+    }
+
+    public int updateDocumentContent(Long id, String content){
+        Document document = documentMapper.selectById(id);
+        if (document == null) {
+            throw new IllegalArgumentException("文档不存在");
+        }
+        int rows = documentMapper.updateContent(id, content);
+        if (rows == 0) {
+            throw new BusinessException("更新内容失败");
+        }
+        System.out.println("文档内容更新成功: ID " + id);
+        return rows;
     }
 }

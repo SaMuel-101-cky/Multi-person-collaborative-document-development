@@ -32,10 +32,37 @@
           AND is_deleted = 0
     </select>
 
+    <select id="selectByFolderId" resultType="com.example.db_document.pojo.Document">
+        SELECT *
+        FROM document
+        <where>
+            is_deleted = 0
+            <choose>
+                <!-- 如果传入了具体的ID，就查 parent_id = ID -->
+                <when test="folderId != null">
+                    AND folder_id = #{folderId}
+                </when>
+                <!-- 如果传入 null，说明查根目录，用 IS NULL -->
+                <otherwise>
+                    AND folder_id IS NULL
+                </otherwise>
+            </choose>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
     <update id="changeFolderId">
         UPDATE document
         SET folder_id = #{newFolderId}
         WHERE id = #{documentId}
           AND is_deleted = 0
     </update>
+
+    <update id="updateContent">
+        UPDATE document
+        SET content = #{content}
+        WHERE id = #{id}
+          AND is_deleted = 0
+    </update>
+
 </mapper>

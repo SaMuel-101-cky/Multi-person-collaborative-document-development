@@ -12,12 +12,15 @@ public interface UserMapper {
      */
     int insert(User user);
 
-    int updateName(Long userId, String newName);
+    int updateAvatarById(@Param("id") Long id, @Param("newAvatarUrl") String newAvatarUrl);
+
+    int updatePasswordById(@Param("id") Long id, @Param("newPassword") String newPassword);
+
+    int updateDynamic(User user);
     /**
      * 根据邮箱查询用户（用于登录或查重）
      */
     User selectByEmail(@Param("email") String email);
-
     /**
      * 根据手机号查询用户
      */
@@ -28,4 +31,6 @@ public interface UserMapper {
 
     //用来登录时查询用户
     User selectByAccount(@Param("account") String account);
+
+    User selectById(@Param("id") Long id);
 }

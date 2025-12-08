@@ -44,4 +44,37 @@
           AND is_deleted = 0
     </select>
 
+    <select id="selectById" resultType="com.example.db_document.pojo.User">
+        SELECT *
+        FROM user
+        WHERE id = #{id}
+          AND is_deleted = 0
+    </select>
+
+    <update id="updateAvatarById">
+        UPDATE user
+        SET avatarUrl = #{newAvatarUrl}
+        WHERE id = #{id}
+          AND is_deleted = 0
+    </update>
+
+    <update id="updatePasswordById">
+        UPDATE user
+        SET password = #{newPassword}
+        WHERE id = #{id}
+          AND is_deleted = 0
+    </update>
+
+    <update id="updateDynamic">
+        UPDATE user
+        <set>
+            <if test="nickname != null and nickname != ''"> nickname = #{nickname}, </if>
+            <if test="phoneNum != null and phoneNum != ''"> phone_num = #{phoneNum}, </if>
+            <if test="email != null and email != ''"> email = #{email}, </if>
+            <if test="bio != null"> bio = #{bio}, </if> <!-- bio 可以为空字符串清空，所以不判断 != '' -->
+            update_time = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+
 </mapper>

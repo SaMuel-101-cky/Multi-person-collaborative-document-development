@@ -1,5 +1,6 @@
 package com.example.db_document.servcie;
 
+import com.example.db_document.exception.BusinessException;
 import com.example.db_document.mapper.FolderMapper;
 import com.example.db_document.pojo.Folder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +47,7 @@ public class FolderService {
         // 这里可以添加更多的业务逻辑，比如检查文件夹是否为空等，需要级联删除，甚至要判断权限！
         int rows = folderMapper.softDeleteById(folderId);
         if (rows == 0) {
-            throw new RuntimeException("删除失败，可能已被删除");
+            throw new BusinessException("删除失败，可能已被删除");
         }
 
         System.out.println("文件夹删除成功: ID " + folderId);
@@ -78,7 +79,7 @@ public class FolderService {
 
         int rows = folderMapper.changeParentId(folderId, newParentId);
         if (rows == 0) {
-            throw new RuntimeException("移动失败");
+            throw new BusinessException("移动失败");
         }
 
         System.out.println("文件夹移动成功: ID " + folderId + " 到新父文件夹ID " + newParentId);

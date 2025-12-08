@@ -1,0 +1,33 @@
+package com.example.db_document.config;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+@Configuration
+public class WebConfig implements WebMvcConfigurer {
+
+    @Value("${file.upload-dir}")
+    private String uploadDir;
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // 意思是：当访问 /images/** 的时候，去硬盘的 uploadDir 找
+        // 注意：file: 前缀必须加
+        registry.addResourceHandler("/images/**")
+                .addResourceLocations("file:" + uploadDir);
+    }
+
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**") // 允许对所有 API 路径进行 CORS 访问
+                .allowedOrigins("http://localhost:5173") // 明确允许前端的源
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") // 允许的 HTTP 方法
+                .allowedHeaders("*") // 允许所有请求头
+                .allowCredentials(true) // 允许携带认证信息
+                .maxAge(3600);
+    }
+}
+
