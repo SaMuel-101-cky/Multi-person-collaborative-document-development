@@ -65,4 +65,23 @@
           AND is_deleted = 0
     </update>
 
+    <update id="updateName">
+        UPDATE document
+        SET name = #{name}
+        WHERE id = #{id}
+          AND is_deleted = 0
+    </update>
+
+    <update id="updateDynamic">
+        UPDATE document
+        <set>
+            <if test="name != null and name != ''"> name = #{name}, </if>
+            <if test="content != null"> content = #{content}, </if>
+            <if test="isDeleted != null"> is_deleted = #{isDeleted}, </if>
+            update_time = NOW()
+        </set>
+        WHERE id = #{id}
+          AND is_deleted = 0
+    </update>
+
 </mapper>

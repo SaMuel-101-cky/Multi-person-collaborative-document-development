@@ -27,8 +27,8 @@ public class FolderController {
     }
 
     //可能需要传入userID，判断是否有删除权限
-    @DeleteMapping("/delete")
-    public JsonResult<Void> deleteFolder(@RequestParam("folderId") Long folderId){
+    @DeleteMapping("/delete/{folderId}")
+    public JsonResult<Void> deleteFolder(@PathVariable Long folderId){
         folderService.softDeleteFolder(folderId);
         return JsonResult.success(null);
     }

@@ -1,7 +1,7 @@
 package com.example.db_document.controller;
 
 import com.example.db_document.model.dto.DocumentCreateRequest;
-import com.example.db_document.model.dto.UpdateContentRequest;
+import com.example.db_document.model.dto.DocumentUpdateRequest;
 import com.example.db_document.pojo.Document;
 import com.example.db_document.pojo.JsonResult;
 import com.example.db_document.servcie.DocumentService;
@@ -26,8 +26,8 @@ public class DocumentController {
         return JsonResult.success(folder);
     }
 
-    @DeleteMapping("/delete")
-    public JsonResult<Void> deleteDocument (@RequestParam("documentId") Long documentId){
+    @DeleteMapping("/delete/{documentId}")
+    public JsonResult<Void> deleteDocument (@PathVariable  Long documentId){
         documentService.softDeleteDocument(documentId);
         return JsonResult.success(null);
     }
@@ -38,15 +38,18 @@ public class DocumentController {
         documentService.moveDocument(documentId, newFolderId);
         return JsonResult.success(null);
     }
+
+    @PostMapping("/update/info")
+    public JsonResult<Document> updateDocumentInfo(@RequestBody DocumentUpdateRequest req) {
+        Document updatedDocument = documentService.updateDocumentInfo(req);
+        return JsonResult.success(updatedDocument);
+    }
+
     @GetMapping("/detail/{id}")
     public JsonResult<Document> getDocumentById(@PathVariable Long id) {
         Document document = documentService.getDocumentById(id);
         return JsonResult.success(document);
     }
 
-    @PostMapping("/update/content")
-    public JsonResult<String> updateDocumentContent(@RequestBody UpdateContentRequest req) {
-        documentService.updateDocumentContent(req.getId(), req.getContent());
-        return JsonResult.success("文档内容更新成功");
-    }
+
 }

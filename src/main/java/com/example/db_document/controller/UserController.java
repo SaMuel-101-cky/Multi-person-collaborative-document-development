@@ -37,7 +37,7 @@ public class UserController {
     }
 
     @PostMapping("/update/info")
-    public JsonResult<User> updateInfo(@RequestBody @Valid UserUpdateRequest req) {
+    public JsonResult<User> updateUserInfo(@RequestBody @Valid UserUpdateRequest req) {
         // 假设你有办法获取当前登录用户的 ID (比如从 Token 或 Session)
         // Long currentUserId = UserContext.getUserId();
         // 这里暂时用 req 里的，但在真实项目中，不要信任前端传来的 userId，要用 Token 里的

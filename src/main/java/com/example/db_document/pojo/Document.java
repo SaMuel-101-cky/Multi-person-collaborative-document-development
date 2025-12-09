@@ -8,7 +8,6 @@ public class Document {
     private Long id;
     private String name;
     private Long folderId;
-    private String title;
     private String content;
     private Long creatorId;
     private Integer isDeleted;
@@ -19,10 +18,9 @@ public class Document {
     public Document(){
     }
 
-    public Document(Long id, String name,String title, String content, Long creatorId,Long folderId, Integer isDeleted, LocalDateTime createTime, LocalDateTime updateTime) {
+    public Document(Long id, String name, String content, Long creatorId,Long folderId, Integer isDeleted, LocalDateTime createTime, LocalDateTime updateTime) {
         this.id = id;
         this.name = name;
-        this.title = title;
         this.content = content;
         this.creatorId = creatorId;
         this.folderId = folderId;
