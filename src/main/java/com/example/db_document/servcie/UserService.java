@@ -134,8 +134,8 @@ public class UserService {
 
         // 1. 唯一性检查 (Uniqueness Check)
         //检查昵称
-        if (req.getNewNickname() != null) {
-            User exist = userMapper.selectByNickname(req.getNewNickname());
+        if (req.getNickname() != null) {
+            User exist = userMapper.selectByNickname(req.getNickname());
             // 如果查到了人，且这个人的ID不是当前用户，说明被别人占用了
             if (exist != null && !exist.getId().equals(userId)) {
                 throw new BusinessException("该昵称已被使用");
@@ -143,16 +143,16 @@ public class UserService {
         }
 
         // 检查手机号
-        if (req.getNewPhoneNum() != null) {
-            User exist = userMapper.selectByPhone(req.getNewPhoneNum());
+        if (req.getPhoneNum() != null) {
+            User exist = userMapper.selectByPhone(req.getPhoneNum());
             if (exist != null && !exist.getId().equals(userId)) {
                 throw new BusinessException("该手机号已被注册");
             }
         }
 
         // 检查邮箱
-        if (req.getNewEmail() != null) {
-            User exist = userMapper.selectByEmail(req.getNewEmail());
+        if (req.getEmail() != null) {
+            User exist = userMapper.selectByEmail(req.getEmail());
             if (exist != null && !exist.getId().equals(userId)) {
                 throw new BusinessException("该邮箱已被注册");
             }
@@ -161,10 +161,10 @@ public class UserService {
         // 2. 组装 Pojo 对象进行更新
         User updateEntity = new User();
         updateEntity.setId(userId);
-        updateEntity.setNickname(req.getNewNickname());
-        updateEntity.setPhoneNum(req.getNewPhoneNum());
-        updateEntity.setEmail(req.getNewEmail());
-        updateEntity.setBio(req.getNewBio());
+        updateEntity.setNickname(req.getNickname());
+        updateEntity.setPhoneNum(req.getPhoneNum());
+        updateEntity.setEmail(req.getEmail());
+        updateEntity.setBio(req.getBio());
 
         // 3. 执行动态 SQL 更新
         int rows = userMapper.updateDynamic(updateEntity);

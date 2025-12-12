@@ -20,9 +20,5 @@ public interface DocumentMapper {
 
     int changeFolderId(@Param("documentId") Long documentId, @Param("newFolderId") Long newFolderId);
 
-    int updateContent(@Param("id") Long id, @Param("content") String content);
-
-    int updateName(@Param("id") Long id, @Param("newName") String name);
-
     int updateDynamic(Document document);
 }

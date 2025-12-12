@@ -7,17 +7,15 @@ import lombok.Data;
 
 @Data
 public class UserUpdateRequest {
-    private Long userId; // 通常从 Token 获取，这里为了演示先放着
-
     @Size(min = 1, max = 20, message = "昵称长度必须在1-20之间")
-    private String newNickname;
+    private String nickname;
 
     @Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
-    private String newPhoneNum;
+    private String phoneNum;
 
     @Email(message = "邮箱格式不正确")
-    private String newEmail;
+    private String email;
 
     @Size(max = 200, message = "简介不能超过200字")
-    private String newBio;
+    private String bio;
 }

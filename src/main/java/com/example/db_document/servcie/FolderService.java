@@ -84,4 +84,13 @@ public class FolderService {
 
         System.out.println("文件夹移动成功: ID " + folderId + " 到新父文件夹ID " + newParentId);
     }
+
+    //在Service层已经检查过，不等于null才去数据库找
+    public Folder getFolderById(Long folderId){
+        Folder folder = folderMapper.selectById(folderId);
+        if (folder == null) {
+            throw new IllegalArgumentException("文件夹不存在");
+        }
+        return folder;
+    }
 }

@@ -2,15 +2,36 @@ package com.example.db_document.handler;
 
 import com.example.db_document.exception.BusinessException;
 import com.example.db_document.pojo.JsonResult; // 引入你的 Result 类
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Objects;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+
+    /**
+     * 专门捕获 @Valid 校验失败抛出的异常
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public JsonResult<Void> handleValidationException(MethodArgumentNotValidException e) {
+        // 1. 获取校验结果
+        BindingResult bindingResult = e.getBindingResult();
+
+        // 2. 提取第一条错误提示 (例如："头像地址不能为空")
+        String errorMsg = Objects.requireNonNull(bindingResult.getFieldError()).getDefaultMessage();
+
+        // 3. 包装成统一返回格式
+        return JsonResult.error(errorMsg);
+    }
+
 
     @ExceptionHandler(BusinessException.class)
     public JsonResult<String> handleBusinessException(BusinessException e) {

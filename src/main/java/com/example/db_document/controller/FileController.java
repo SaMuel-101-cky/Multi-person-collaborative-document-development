@@ -43,7 +43,6 @@ public class FileController {
             file.transferTo(dest);
 
             // 4. 返回可以在浏览器访问的 URL 路径
-            // 假设你的后端端口是 8080
             String fileUrl = "http://localhost:8080/images/" + newFileName;
 
             return JsonResult.success(fileUrl);

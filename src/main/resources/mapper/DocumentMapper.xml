@@ -27,9 +27,17 @@
     <select id="countByNameAndFolderId" resultType="int">
         SELECT COUNT(*)
         FROM document
-        WHERE name = #{name}
-          AND folder_id = #{folderId}
-          AND is_deleted = 0
+        <where>
+            is_deleted = 0 AND name = #{name}
+            <choose>
+                <when test="folderId != null">
+                    AND folder_id = #{folderId}
+                </when>
+                <otherwise>
+                    AND folder_id IS NULL
+                </otherwise>
+            </choose>
+        </where>
     </select>
 
     <select id="selectByFolderId" resultType="com.example.db_document.pojo.Document">
@@ -55,20 +63,6 @@
         UPDATE document
         SET folder_id = #{newFolderId}
         WHERE id = #{documentId}
-          AND is_deleted = 0
-    </update>
-
-    <update id="updateContent">
-        UPDATE document
-        SET content = #{content}
-        WHERE id = #{id}
-          AND is_deleted = 0
-    </update>
-
-    <update id="updateName">
-        UPDATE document
-        SET name = #{name}
-        WHERE id = #{id}
           AND is_deleted = 0
     </update>
 

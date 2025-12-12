@@ -1,8 +1,10 @@
 package com.example.db_document.config;
 
+import com.example.db_document.interceptor.LoginInterceptor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -28,6 +30,20 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowedHeaders("*") // 允许所有请求头
                 .allowCredentials(true) // 允许携带认证信息
                 .maxAge(3600);
+    }
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(new LoginInterceptor())
+                .addPathPatterns("/**")  // 拦截所有接口
+                .excludePathPatterns(    // 放行以下接口
+                        "/api/user/login",
+                        "/api/user/register",
+                        "/error", // Spring Boot 默认报错页面
+                        "/ws/**",  // 放行 WebSocket (连接阶段由 WebSocket 拦截器专门处理)
+                        "/images/**",
+                        "/file/**" // 如果你的图片接口是 /api/file/xxx，也加上
+                );
     }
 }
 

@@ -9,7 +9,7 @@
     <!-- 1. 新增用户 -->
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO user
-        (nickname, password, phone_num, email)
+            (nickname, password, phone_num, email)
         VALUES
             (#{nickname}, #{password}, #{phoneNum}, #{email})
     </insert>
