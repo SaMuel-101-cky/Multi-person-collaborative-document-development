@@ -2,9 +2,11 @@ package com.example.db_document.controller;
 
 import com.example.db_document.model.dto.DocumentCreateRequest;
 import com.example.db_document.model.dto.DocumentUpdateRequest;
+import com.example.db_document.model.vo.SharedContentVO;
 import com.example.db_document.pojo.Document;
 import com.example.db_document.pojo.JsonResult;
 import com.example.db_document.servcie.DocumentService;
+import com.example.db_document.servcie.SharedService;
 import com.example.db_document.utils.UserContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +18,8 @@ import org.springframework.web.bind.annotation.*;
 public class DocumentController {
     @Autowired
     private DocumentService documentService;
+    @Autowired
+    private SharedService sharedService;
 
     public DocumentController(){
     }
@@ -48,7 +52,7 @@ public class DocumentController {
     @PostMapping("/update/info")
     public JsonResult<Document> updateDocumentInfo(@RequestBody DocumentUpdateRequest req) {
         Long userId = UserContext.getUserId();
-        Document updatedDocument = documentService.updateDocumentInfo(req);
+        Document updatedDocument = documentService.updateDocumentInfo(userId, req);
         return JsonResult.success(updatedDocument);
     }
 
@@ -56,5 +60,12 @@ public class DocumentController {
     public JsonResult<Document> getDocumentById(@PathVariable Long id) {
         Document document = documentService.getDocumentById(id);
         return JsonResult.success(document);
+    }
+
+    @GetMapping("/shared")
+    public JsonResult<SharedContentVO> getSharedDocuments() {
+        Long userId = UserContext.getUserId();
+        SharedContentVO sharedContentVO = sharedService.getSharedDocuments(userId);
+        return JsonResult.success(sharedContentVO);
     }
 }

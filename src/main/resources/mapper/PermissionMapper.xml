@@ -13,11 +13,40 @@
             (#{documentId}, #{userId}, #{permissionType})
     </insert>
 
-    <select id="selectByDocAndUserId" resultType="com.example.db_document.pojo.Permission">
+    <select id="selectByDocIdAndUserId" resultType="com.example.db_document.pojo.Permission">
         SELECT *
         FROM permission
         WHERE document_id = #{documentId}
-        AND user_id = #{userId}
+            AND user_id = #{userId}
+            AND (permission_type = 'owner' OR permission_type = 'editor')
     </select>
+
+    <select id="selectByDocIdAndUserIdCollaborate" resultType="com.example.db_document.pojo.Permission">
+        SELECT *
+        FROM permission
+        WHERE document_id = #{documentId}
+            AND user_id = #{userId}
+            AND permission_type IN ('editor', 'viewer')
+    </select>
+
+    <select id="selectUsersByDocumentId" resultType="com.example.db_document.pojo.User">
+        SELECT user.*
+        FROM (
+        SELECT user_id
+        FROM permission
+        WHERE document_id = #{documentId}
+        AND is_deleted = 0
+        AND permission_type IN ('editor', 'viewer')
+        ) AS perm
+        INNER JOIN user ON perm.user_id = user.id
+
+    </select>
+
+    <update id="deleteByDocIdAndUserId">
+        UPDATE permission
+        SET is_deleted = 1
+        WHERE document_id = #{documentId}
+            AND user_id = #{userId}
+    </update>
 
 </mapper>

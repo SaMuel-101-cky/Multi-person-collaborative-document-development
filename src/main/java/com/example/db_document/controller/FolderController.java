@@ -1,7 +1,7 @@
 package com.example.db_document.controller;
 
 import com.example.db_document.model.dto.FolderCreateRequest;
-import com.example.db_document.model.vo.DirectoryContent;
+import com.example.db_document.model.vo.DirectoryContentVO;
 import com.example.db_document.pojo.Folder;
 import com.example.db_document.pojo.JsonResult;
 import com.example.db_document.servcie.DirectoryService;
@@ -41,10 +41,12 @@ public class FolderController {
         return JsonResult.success(null);
     }
 
+    //返回的是自己的工作区域，与其他人合作的地方写一个别的接口
     @GetMapping("/content")
-    public JsonResult<DirectoryContent> getFolderContent (@RequestParam(value = "currentFolderId" ,
+    public JsonResult<DirectoryContentVO> getFolderContent (@RequestParam(value = "currentFolderId" ,
                                                           required = false) Long currentFolderId){
-        DirectoryContent content = directoryService.getChildren(currentFolderId);
+        Long userId = UserContext.getUserId();
+        DirectoryContentVO content = directoryService.getChildren(userId, currentFolderId);
         return JsonResult.success(content);
     }
 }

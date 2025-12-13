@@ -40,11 +40,11 @@
         </where>
     </select>
 
-    <select id="selectByFolderId" resultType="com.example.db_document.pojo.Document">
+    <select id="selectByFolderAndCreatorId" resultType="com.example.db_document.pojo.Document">
         SELECT *
         FROM document
         <where>
-            is_deleted = 0
+            is_deleted = 0 AND creator_id = #{creatorId}
             <choose>
                 <!-- 如果传入了具体的ID，就查 parent_id = ID -->
                 <when test="folderId != null">
@@ -57,6 +57,22 @@
             </choose>
         </where>
         ORDER BY create_time DESC
+    </select>
+
+    <select id="selectSharedDocuments"
+            resultType="com.example.db_document.pojo.Document"
+            useCache="true"> <!-- MySQL下开启缓存提升重复查询效率 -->
+        SELECT doc.*
+        FROM (
+        SELECT document_id
+        FROM permission
+        WHERE user_id = #{userId}
+        AND is_deleted = 0
+        AND permission_type IN ('editor', 'viewer')
+        ) AS perm
+        INNER JOIN document doc ON perm.document_id = doc.id  <!-- MySQL推荐用INNER JOIN代替JOIN，语义更清晰 -->
+        WHERE doc.is_deleted = 0
+        ORDER BY doc.update_time DESC;
     </select>
 
     <update id="changeFolderId">

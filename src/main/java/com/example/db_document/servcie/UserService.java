@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -210,5 +211,13 @@ public class UserService {
         }
         user.setPassword(null);
         return user;
+    }
+
+    public List<User> getUserByNickname(String nickname){
+        List<User> users = userMapper.selectByNicknameLike(nickname);
+        if(users == null){
+            throw new BusinessException("用户不存在");
+        }
+        return users;
     }
 }

@@ -4,6 +4,8 @@ import com.example.db_document.pojo.User;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
 @Mapper
 public interface UserMapper {
     /**
@@ -28,6 +30,8 @@ public interface UserMapper {
 
     //判断是否重名
     User selectByNickname(@Param("nickname") String nickname);
+
+    List<User> selectByNicknameLike(@Param("nickname") String nickname);
 
     //用来登录时查询用户
     User selectByAccount(@Param("account") String account);

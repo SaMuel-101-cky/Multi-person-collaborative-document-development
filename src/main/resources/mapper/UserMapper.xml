@@ -51,6 +51,13 @@
           AND is_deleted = 0
     </select>
 
+    <select id="selectByNicknameLike" resultType="com.example.db_document.pojo.User">
+        SELECT *
+        FROM user
+        WHERE nickname LIKE CONCAT(#{nickname}, '%')
+          AND is_deleted = 0
+    </select>
+
     <update id="updateAvatarById">
         UPDATE user
         SET avatarUrl = #{newAvatarUrl}

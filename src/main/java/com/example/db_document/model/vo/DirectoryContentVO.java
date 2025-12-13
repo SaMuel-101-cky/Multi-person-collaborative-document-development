@@ -8,10 +8,9 @@ import java.util.List;
 
 
 @Data
-public class DirectoryContent {
+public class DirectoryContentVO {
     // 当前目录下的文件夹列表
     private List<Folder> folders;
     // 当前目录下的文档列表
     private List<Document> documents;
-
 }

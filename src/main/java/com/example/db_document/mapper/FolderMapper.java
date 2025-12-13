@@ -20,7 +20,7 @@ public interface FolderMapper {
      */
     int countByNameAndParentId(@Param("name") String name,@Param("parentId") Long parentId);
 
-    List<Folder> selectByParentId(@Param("parentId") Long parentId);
+    List<Folder> selectByParentAndCreatorId(@Param("parentId") Long parentId,@Param("creatorId") Long creatorId);
 
     int softDeleteById(@Param("id") Long id);
 

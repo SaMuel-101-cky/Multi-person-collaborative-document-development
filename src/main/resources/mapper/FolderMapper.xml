@@ -37,11 +37,11 @@
         ORDER BY create_time DESC
     </select>
 
-    <select id="selectByParentId" resultType="com.example.db_document.pojo.Folder">
+    <select id="selectByParentAndCreatorId" resultType="com.example.db_document.pojo.Folder">
         SELECT *
         FROM folder
         <where>
-            is_deleted = 0
+            is_deleted = 0 AND creator_id = #{creatorId}
             <choose>
                 <!-- 如果传入了具体的ID，就查 parent_id = ID -->
                 <when test="parentId != null">

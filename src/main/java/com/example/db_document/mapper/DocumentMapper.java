@@ -14,7 +14,9 @@ public interface DocumentMapper {
 
     int softDeleteById(@Param("id") Long id);
 
-    List<Document> selectByFolderId(@Param("folderId") Long folderId);
+    List<Document> selectByFolderAndCreatorId(@Param("folderId") Long folderId, @Param("creatorId") Long creatorId);
+
+    List<Document> selectSharedDocuments(@Param("userId") Long userId);
 
     int countByNameAndFolderId(@Param("name") String name, @Param("folderId") Long folderId);
 

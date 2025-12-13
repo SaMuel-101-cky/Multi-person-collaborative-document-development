@@ -3,10 +3,7 @@ package com.example.db_document.servcie;
 import com.example.db_document.exception.BusinessException;
 import com.example.db_document.mapper.DocumentMapper;
 import com.example.db_document.model.dto.DocumentUpdateRequest;
-import com.example.db_document.pojo.Document;
-import com.example.db_document.pojo.Folder;
-import com.example.db_document.pojo.Permission;
-import com.example.db_document.pojo.PermissionType;
+import com.example.db_document.pojo.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +18,7 @@ public class DocumentService {
     private FolderService folderService;
     @Autowired
     private PermissionServcie permissionServcie;
+    @Autowired UserService userService;
 
     public DocumentService(){
     }
@@ -116,7 +114,7 @@ public class DocumentService {
 
     //同样检查权限
     @Transactional(rollbackFor = Exception.class) // 开启事务：报错回滚
-    public Document updateDocumentInfo(DocumentUpdateRequest req){
+    public Document updateDocumentInfo(Long userId, DocumentUpdateRequest req){
         Long documentId = req.getId();
         Document document = documentMapper.selectById(documentId);
         if (document == null) {
@@ -132,6 +130,11 @@ public class DocumentService {
             }
         }
 
+        //判断是否有权限
+        Permission permission = permissionServcie.getDocumentPermission(documentId, userId);
+        if (permission == null){
+            throw new IllegalArgumentException("用户无权限修改该文档");
+        }
 
         // 可以继续添加其他字段的检查
         Document documentEntity = new Document();
@@ -149,4 +152,5 @@ public class DocumentService {
         System.out.println("文档信息更新成功: ID " + documentId);
         return updatedDocument;
     }
+
 }
