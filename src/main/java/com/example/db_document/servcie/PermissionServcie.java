@@ -3,6 +3,7 @@ package com.example.db_document.servcie;
 import com.example.db_document.mapper.DocumentMapper;
 import com.example.db_document.mapper.PermissionMapper;
 import com.example.db_document.model.vo.DocumentMemberVO;
+import com.example.db_document.model.vo.UserVO;
 import com.example.db_document.pojo.Document;
 import com.example.db_document.pojo.Permission;
 import com.example.db_document.pojo.PermissionType;
@@ -81,6 +82,7 @@ public class PermissionServcie {
         return permissionMapper.selectByDocIdAndUserId(documentId, userId);
     }
 
+    //硬删除，数据库有索引唯一限制
     public void deletePermission(Long documentId, Long userId) {
         Document document = documentMapper.selectById(documentId);
         if (document == null) {
@@ -96,6 +98,7 @@ public class PermissionServcie {
         if (rows == 0) {
             throw new IllegalArgumentException("权限不存在或已被删除");
         }
+        System.out.println("移除成功");
     }
 
     public DocumentMemberVO getDocumentMembers(Long documentId) {
@@ -105,8 +108,8 @@ public class PermissionServcie {
         }
 
         DocumentMemberVO vo = new DocumentMemberVO();
-        List<User> users = permissionMapper.selectUsersByDocumentId (documentId);
-
+        List<UserVO> users = permissionMapper.selectUserVOByDocumentId (documentId);
+        vo.setMembers(users);
         return vo;
     }
 }

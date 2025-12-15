@@ -41,7 +41,7 @@ public class PermissionController {
         return JsonResult.success(permission);
     }
 
-    //移除协作者
+    //移除协作者，硬删除
     @DeleteMapping("/delete")
     public JsonResult<Void> deletePermission(@RequestBody PermissionDeleteRequest req) {
         permissionServcie.deletePermission(

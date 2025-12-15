@@ -18,7 +18,8 @@
         FROM permission
         WHERE document_id = #{documentId}
             AND user_id = #{userId}
-            AND (permission_type = 'owner' OR permission_type = 'editor')
+            AND permission_type IN ('editor', 'owner')
+            AND is_deleted = 0
     </select>
 
     <select id="selectByDocIdAndUserIdCollaborate" resultType="com.example.db_document.pojo.Permission">
@@ -27,6 +28,7 @@
         WHERE document_id = #{documentId}
             AND user_id = #{userId}
             AND permission_type IN ('editor', 'viewer')
+            AND is_deleted = 0
     </select>
 
     <select id="selectUsersByDocumentId" resultType="com.example.db_document.pojo.User">
@@ -42,11 +44,20 @@
 
     </select>
 
+    <select id="selectUserVOByDocumentId" resultType="com.example.db_document.model.vo.UserVO">
+        SELECT
+            u.id AS userId,
+            u.nickname,
+            u.avatarUrl,
+            u.bio,
+            dp.permission_type AS permissionType
+            FROM permission dp LEFT JOIN user u ON dp.user_id = u.id
+        WHERE dp.document_id = #{documentId} AND dp.is_deleted = 0
+    </select>
+
     <update id="deleteByDocIdAndUserId">
-        UPDATE permission
-        SET is_deleted = 1
-        WHERE document_id = #{documentId}
-            AND user_id = #{userId}
+        DELETE FROM permission
+        WHERE document_id = #{documentId} AND user_id = #{userId}
     </update>
 
 </mapper>

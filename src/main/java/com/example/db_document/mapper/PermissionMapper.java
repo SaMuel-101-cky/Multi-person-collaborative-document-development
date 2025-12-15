@@ -1,5 +1,6 @@
 package com.example.db_document.mapper;
 
+import com.example.db_document.model.vo.UserVO;
 import com.example.db_document.pojo.Permission;
 import com.example.db_document.pojo.User;
 import org.apache.ibatis.annotations.Mapper;
@@ -19,4 +20,6 @@ public interface PermissionMapper {
     int deleteByDocIdAndUserId(Long documentId, Long userId);
 
     List<User> selectUsersByDocumentId(Long documentId);
+
+    List<UserVO> selectUserVOByDocumentId(Long documentId);
 }
