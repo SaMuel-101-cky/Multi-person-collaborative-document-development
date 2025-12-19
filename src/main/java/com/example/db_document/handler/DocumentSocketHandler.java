@@ -1,5 +1,6 @@
 package com.example.db_document.handler;
 
+import com.example.db_document.pojo.PermissionType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.BinaryMessage;
 import org.springframework.web.socket.CloseStatus;
@@ -39,6 +40,16 @@ public class DocumentSocketHandler extends BinaryWebSocketHandler {
      */
     @Override
     protected void handleBinaryMessage(WebSocketSession session, BinaryMessage message) throws Exception {
+        // 1. 取出权限
+        PermissionType role = (PermissionType) session.getAttributes().get("role");
+
+        // 如果是 VIEWER，直接丢弃消息，不转发给其他人
+        if (role == PermissionType.VIEWER) {
+            System.out.println("拦截只读用户的写入尝试");
+            return;
+        }
+
+        //原来的转发逻辑
         Long docId = (Long) session.getAttributes().get("docId");
 
         System.out.println(">>>> [收到消息] Doc:" + docId + ", 长度:" + message.getPayloadLength() + ", 来自Session:" + session.getId());

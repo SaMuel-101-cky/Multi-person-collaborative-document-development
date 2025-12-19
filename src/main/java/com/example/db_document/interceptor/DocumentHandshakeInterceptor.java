@@ -1,8 +1,7 @@
 package com.example.db_document.interceptor;
 
 import com.example.db_document.pojo.Permission;
-import com.example.db_document.servcie.PermissionServcie;
-import com.example.db_document.utils.UserContext;
+import com.example.db_document.service.PermissionService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.ServerHttpRequest;
@@ -19,7 +18,7 @@ import java.util.Map;
 public class DocumentHandshakeInterceptor implements HandshakeInterceptor {
 
     @Autowired
-    private PermissionServcie permissionServcie; // 或者注入你的 PermissionMapper
+    private PermissionService permissionService; // 或者注入你的 PermissionMapper
 
     @Override
     public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response,
@@ -46,12 +45,14 @@ public class DocumentHandshakeInterceptor implements HandshakeInterceptor {
             Long userId = Long.parseLong(userIdStr);
 
             // 3. 查库鉴权 (根据你的 permission 表),鉴定的是什么权限？除了viewer以外
-            Permission permission = permissionServcie.getDocumentPermission(docId, userId);
+            Permission permission = permissionService.getDocumentPermission(docId, userId);
 
             if (permission != null) {
                 // 鉴权通过！将关键信息存入 WebSocket Session 的属性中，方便 Handler 使用
                 attributes.put("docId", docId);
                 attributes.put("userId", userId);
+
+                attributes.put("role", permission.getPermissionType());
                 return true;
             }
         }

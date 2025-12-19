@@ -22,4 +22,6 @@ public interface PermissionMapper {
     List<User> selectUsersByDocumentId(Long documentId);
 
     List<UserVO> selectUserVOByDocumentId(Long documentId);
+
+    int countByDocumentId(Long documentId);
 }

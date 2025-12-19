@@ -1,4 +1,4 @@
-package com.example.db_document.servcie;
+package com.example.db_document.service;
 
 import com.example.db_document.mapper.DocumentMapper;
 import com.example.db_document.mapper.FolderMapper;

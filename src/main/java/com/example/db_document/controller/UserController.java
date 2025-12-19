@@ -4,7 +4,7 @@ import com.example.db_document.model.dto.*;
 import com.example.db_document.model.vo.LoginRespVO;
 import com.example.db_document.pojo.JsonResult;
 import com.example.db_document.pojo.User;
-import com.example.db_document.servcie.UserService;
+import com.example.db_document.service.UserService;
 import com.example.db_document.model.vo.UserVO;
 import com.example.db_document.utils.JwtUtil;
 import com.example.db_document.utils.UserContext;

@@ -60,4 +60,11 @@
         WHERE document_id = #{documentId} AND user_id = #{userId}
     </update>
 
+    <select id="countByDocumentId" resultType="int">
+        SELECT COUNT(*)
+        FROM permission
+        WHERE document_id = #{documentId}
+            AND is_deleted = 0
+    </select>
+
 </mapper>

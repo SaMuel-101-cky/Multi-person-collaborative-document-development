@@ -8,7 +8,7 @@ public class Permission {
     private Long id;
     private Long documentId;
     private Long userId;
-    private PermissionType permissionType;         //需要修改，看看用枚举还是hashMap
+    private PermissionType permissionType;
     private LocalDateTime createTime;
     private Integer isDeleted;
 

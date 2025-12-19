@@ -1,8 +1,9 @@
-package com.example.db_document.servcie;
+package com.example.db_document.service;
 
 import com.example.db_document.exception.BusinessException;
 import com.example.db_document.mapper.DocumentMapper;
 import com.example.db_document.model.dto.DocumentUpdateRequest;
+import com.example.db_document.model.vo.DocumentDetailVO;
 import com.example.db_document.pojo.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,8 +18,8 @@ public class DocumentService {
     @Autowired
     private FolderService folderService;
     @Autowired
-    private PermissionServcie permissionServcie;
-    @Autowired UserService userService;
+    private PermissionService permissionService;
+
 
     public DocumentService(){
     }
@@ -55,7 +56,7 @@ public class DocumentService {
         PermissionType Ptype = PermissionType.valueOf("OWNER");
         permission.setPermissionType(Ptype);
 
-        permissionServcie.createDocumentPermission(
+        permissionService.createDocumentPermission(
                 document.getId(),
                 creatorId,
                 Ptype
@@ -65,7 +66,7 @@ public class DocumentService {
         return document;
     }
 
-    //检查权限
+    //在Controller层用AOP检查了权限
     public void softDeleteDocument(Long documentId){
         Document document = documentMapper.selectById(documentId);
         if (document == null) {
@@ -79,7 +80,8 @@ public class DocumentService {
 
         System.out.println("文件删除成功: ID " + document);
     }
-    //检查权限
+
+    //检查权限，暂时没用到这个
     public void moveDocument(Long documentId, Long newFolderId){
         Document document = documentMapper.selectById(documentId);
         if (document == null) {
@@ -95,7 +97,6 @@ public class DocumentService {
             throw new IllegalArgumentException("文档已在目标文件夹中");
         }
 
-        // 这里可以添加更多的业务逻辑，比如权限检查等
 
         int rows = documentMapper.changeFolderId(documentId, newFolderId);
         if (rows == 0) {
@@ -103,19 +104,29 @@ public class DocumentService {
         }
         System.out.println("文件移动成功: ID " + documentId + " 移动到文件夹ID " + newFolderId);
     }
+
     //检查权限
-    public Document getDocumentById(Long id){
+    public DocumentDetailVO getDocumentById(Long id){
         Document document = documentMapper.selectById(id);
         if (document == null) {
             throw new IllegalArgumentException("文档不存在");
         }
-        return document;
+        int count = permissionService.getCollaboratorByDocumentId(id);
+
+        boolean isShared = count > 1;
+
+        // 3. 封装返回
+        DocumentDetailVO vo = new DocumentDetailVO();
+        vo.setDocument(document);
+        vo.setShared(isShared); // 设置标志位
+
+        return vo;
     }
 
     //同样检查权限
     @Transactional(rollbackFor = Exception.class) // 开启事务：报错回滚
     public Document updateDocumentInfo(Long userId, DocumentUpdateRequest req){
-        Long documentId = req.getId();
+        Long documentId = req.getDocumentId();
         Document document = documentMapper.selectById(documentId);
         if (document == null) {
             throw new IllegalArgumentException("文档不存在");
@@ -130,11 +141,11 @@ public class DocumentService {
             }
         }
 
-        //判断是否有权限
-        Permission permission = permissionServcie.getDocumentPermission(documentId, userId);
-        if (permission == null){
-            throw new IllegalArgumentException("用户无权限修改该文档");
-        }
+//        //判断是否有权限，已经在外部完成AOP判断
+//        Permission permission = permissionService.getDocumentPermission(documentId, userId);
+//        if (permission == null){
+//            throw new IllegalArgumentException("用户无权限修改该文档");
+//        }
 
         // 可以继续添加其他字段的检查
         Document documentEntity = new Document();

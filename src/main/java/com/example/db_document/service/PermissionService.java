@@ -1,4 +1,4 @@
-package com.example.db_document.servcie;
+package com.example.db_document.service;
 
 import com.example.db_document.mapper.DocumentMapper;
 import com.example.db_document.mapper.PermissionMapper;
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class PermissionServcie {
+public class PermissionService {
     @Autowired
     private UserService userService;
     @Autowired
@@ -22,7 +22,7 @@ public class PermissionServcie {
     @Autowired
     private DocumentMapper documentMapper;    //解决循环依赖的架构问题，spring会编译报错
 
-    public PermissionServcie() {
+    public PermissionService() {
     }
 
     public Permission createDocumentPermission(Long documentId, Long userId, PermissionType permissionType) {
@@ -111,5 +111,14 @@ public class PermissionServcie {
         List<UserVO> users = permissionMapper.selectUserVOByDocumentId (documentId);
         vo.setMembers(users);
         return vo;
+    }
+
+    public int getCollaboratorByDocumentId(Long documentId){
+        Document document = documentMapper.selectById(documentId);
+        if (document == null) {
+            throw new IllegalArgumentException("目标文档不存在");
+        }
+
+        return permissionMapper.countByDocumentId(documentId);
     }
 }

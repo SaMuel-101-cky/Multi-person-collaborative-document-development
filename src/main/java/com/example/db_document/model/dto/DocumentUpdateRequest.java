@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 public class DocumentUpdateRequest {
     //文档的id
-    private Long id;
+    private Long documentId;
     private String name;
     private String content;
 }
