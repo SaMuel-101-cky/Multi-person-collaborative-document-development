@@ -23,7 +23,7 @@ usecaseDiagram
 
     }
 
-    %% 关系定义
+
     User --> UC1
     User --> UC2
     User --> UC3
@@ -32,7 +32,6 @@ usecaseDiagram
     User --> UC6
     User --> UC7
 
-    %% 包含与扩展关系
     UC7 <.. UC8 : <<extend>> \n(当多用户进入时)
     UC7 ..> UC9 : <<include>>
     UC7 ..> UC10 : <<include>>
