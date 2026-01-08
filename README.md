@@ -1,3 +1,4 @@
+```mermaid
 graph LR
     %% 定义执行者样式
     User((注册用户))
@@ -34,3 +35,4 @@ graph LR
     %% 样式美化
     style User fill:#f9f,stroke:#333,stroke-width:2px
     style System fill:#fff,stroke:#333,stroke-dasharray: 5 5
+```
