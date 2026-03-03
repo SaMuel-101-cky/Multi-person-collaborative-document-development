@@ -1,15 +1,22 @@
 package com.example.db_document.utils;
 
+import com.example.db_document.config.JwtConfig;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import java.util.Date;
 
+@Component
 public class JwtUtil {
-    // 密钥，切记不要泄露，实际开发中应放在 application.yml
-    private static final String SECRET_KEY = "MySuperSecretKeyForDocApp";
-    // 过期时间 24小时
-    private static final long EXPIRATION_TIME = 86400000;
+    private static JwtConfig jwtConfig;
+
+    @Autowired
+    public void setJwtConfig(JwtConfig jwtConfig) {
+        JwtUtil.jwtConfig = jwtConfig;
+    }
 
     /**
      * 生成 Token
@@ -20,8 +27,8 @@ public class JwtUtil {
                 .claim("nickname", nickname)
                 .setSubject(String.valueOf(userId))
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
+                .setExpiration(new Date(System.currentTimeMillis() + jwtConfig.getExpirationTime()))
+                .signWith(SignatureAlgorithm.HS512, jwtConfig.getSecretKey()) // 使用更强的HS512算法
                 .compact();
     }
 
@@ -31,7 +38,7 @@ public class JwtUtil {
     public static Long parseToken(String token) {
         try {
             Claims claims = Jwts.parser()
-                    .setSigningKey(SECRET_KEY)
+                    .setSigningKey(jwtConfig.getSecretKey())
                     .parseClaimsJws(token)
                     .getBody();
             return Long.parseLong(claims.getSubject());

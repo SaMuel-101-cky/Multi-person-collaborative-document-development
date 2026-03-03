@@ -27,7 +27,7 @@ public class FileController {
 
         try {
             // 1. 确保目录存在
-            File dir = new File(uploadDir);
+            File dir = new File(uploadDir).getAbsoluteFile();;
             if (!dir.exists()) {
                 dir.mkdirs();
             }
@@ -39,7 +39,7 @@ public class FileController {
             String newFileName = UUID.randomUUID().toString() + suffix;
 
             // 3. 保存文件到硬盘
-            File dest = new File(uploadDir + newFileName);
+            File dest = new File(dir,newFileName);
             file.transferTo(dest);
 
             // 4. 返回可以在浏览器访问的 URL 路径
