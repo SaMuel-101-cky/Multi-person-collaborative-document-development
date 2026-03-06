@@ -33,3 +33,11 @@ mybatis:
 file:
   # 建议：Windows路径也统一用正斜杠 /，Java能自动识别，且避免转义问题
   upload-dir: ${FILE_UPLOAD_DIR:./Uploads/}
+  # 允许的文件类型（MIME类型）
+  allowed-types: image/jpeg,image/png,image/gif,image/webp
+  # 最大文件大小（字节）
+  max-size: 5242880 # 5MB
+  # 是否启用病毒扫描
+  virus-scan-enabled: false
+  # 上传速率限制（每分钟）
+  rate-limit: 10
