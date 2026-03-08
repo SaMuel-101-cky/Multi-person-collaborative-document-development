@@ -25,6 +25,30 @@ public class FileUploadService {
     private final long maxSize;
     private final boolean virusScanEnabled;
 
+    // 允许的安全文件扩展名白名单
+    private static final List<String> ALLOWED_EXTENSIONS = Arrays.asList(
+            "jpg", "jpeg", "png", "gif", "bmp", "webp", // 图片格式
+            "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", // 文档格式
+            "txt", "md", "rtf", // 文本格式
+            "zip", "rar", "7z", // 压缩格式
+            "mp4", "mp3", "wav", "flv", "avi", "mov", // 音视频格式
+            "svg", "ico", "tiff", "tif" // 其他图片格式
+    );
+
+    // 危险文件扩展名黑名单
+    private static final List<String> DANGEROUS_EXTENSIONS = Arrays.asList(
+            "exe", "bat", "cmd", "sh", "bash", "csh", "zsh", // 可执行文件
+            "php", "php3", "php4", "php5", "phtml", // PHP文件
+            "jsp", "jspx", "java", "class", // Java文件
+            "asp", "aspx", "asmx", // ASP文件
+            "js", "vbs", "vbe", "wsf", "wsh", // 脚本文件
+            "dll", "so", "dylib", // 动态链接库
+            "bin", "dat", "db", "mdb", // 二进制文件
+            "pl", "py", "rb", "go", "c", "cpp", "h", "hpp", // 源代码
+            "msi", "msp", "mst", "msu", // Windows安装包
+            "reg", "scr", "pif", "com" // 其他可执行文件
+    );
+
 
     // 2. 手动写构造函数，并在参数上使用 @Value
     public FileUploadService(
@@ -97,18 +121,38 @@ public class FileUploadService {
 
     /**
      * 验证文件扩展名是否合法
+     * 使用白名单和黑名单双重验证机制
      */
     private boolean isValidExtension(String filename) {
         if (filename == null || filename.isEmpty()) {
             return false;
         }
+
+        // 防止目录遍历攻击和空字节注入
+        if (filename.contains("..") || filename.contains("/") || filename.contains("\\")) {
+            return false;
+        }
+
         // 检查文件名格式
         if (!filename.matches("^[a-zA-Z0-9._-]+\\.[a-zA-Z0-9]+$")) {
             return false;
         }
+
+        // 获取文件扩展名（转换为小写）
+        String suffix = filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
+
         // 检查扩展名长度
-        String suffix = filename.substring(filename.lastIndexOf(".") + 1);
-        return suffix.length() >= 1 && suffix.length() <= 10;
+        if (suffix.length() < 1 || suffix.length() > 10) {
+            return false;
+        }
+
+        // 检查黑名单（危险扩展名）
+        if (DANGEROUS_EXTENSIONS.contains(suffix)) {
+            return false;
+        }
+
+        // 检查白名单（只允许安全的扩展名）
+        return ALLOWED_EXTENSIONS.contains(suffix);
     }
 
     /**

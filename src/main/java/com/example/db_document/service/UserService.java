@@ -198,9 +198,8 @@ public class UserService {
         }
 
         System.out.println("密码更新成功");
-        User newUser = userMapper.selectById(userId);
-        newUser.setPassword(null); // 确保不返回密码
-        return newUser;
+        user.setPassword(null); // 确保不返回密码
+        return user;
     }
 
     //暂时还没用到

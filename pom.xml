@@ -31,48 +31,75 @@
     </properties>
 
     <dependencies>
-
+        <!-- 核心Web依赖：包含Spring MVC、Tomcat容器、RESTful开发支持、HTTP请求处理等 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
+        <!-- AOP面向切面编程依赖：支持切面、通知、切点等AOP核心能力，用于日志、事务、权限等统一处理 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
 
+        <!-- 参数校验依赖：支持JSR-380（Bean Validation 2.0）规范，用于请求参数/实体类的合法性校验（如@NotNull、@Size） -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
+
+        <!-- MyBatis整合Spring Boot的启动器：简化MyBatis配置，实现ORM映射、SQL映射器、数据库交互 -->
         <dependency>
             <groupId>org.mybatis.spring.boot</groupId>
             <artifactId>mybatis-spring-boot-starter</artifactId>
             <version>3.0.5</version>
         </dependency>
 
+        <!-- MySQL数据库驱动：运行时依赖，用于Java程序连接MySQL数据库（JDBC驱动） -->
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
             <scope>runtime</scope>
         </dependency>
+
+        <!-- Spring Boot测试核心依赖：包含JUnit 5、Spring Test、AssertJ等，用于单元测试/集成测试 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- MyBatis整合Spring Boot的测试依赖：提供MyBatis相关的测试支持（如Mock SqlSession） -->
         <dependency>
             <groupId>org.mybatis.spring.boot</groupId>
             <artifactId>mybatis-spring-boot-starter-test</artifactId>
             <version>3.0.5</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- Mockito核心依赖：用于模拟（Mock）对象，简化测试中对外部依赖的隔离（如Mock Service/DAO） -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Mockito整合JUnit 5的依赖：简化Mockito在JUnit 5中的使用（如@ExtendWith(MockitoExtension.class)） -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Spring Boot配置处理器：生成配置元数据，让IDE能提示application.properties/yaml中的配置项（可选依赖） -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
             <optional>true</optional>
         </dependency>
+
+        <!-- Lombok依赖：通过注解简化Java代码（如@Data、@Slf4j、@NoArgsConstructor），减少模板代码（getter/setter/构造器） -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -80,50 +107,63 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- WebSocket依赖：支持WebSocket协议，实现客户端与服务端的双向实时通信（如聊天、推送） -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-websocket</artifactId>
         </dependency>
 
+        <!-- JWT（JJWT）依赖：用于生成、解析JSON Web Token，实现无状态的身份认证/授权 -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt</artifactId>
             <version>0.9.1</version>
         </dependency>
+
+        <!-- JAXB API依赖：解决Java 9+中JAXB模块被移除的问题，用于XML绑定/解析（JJWT 0.9.1依赖JAXB） -->
         <dependency>
             <groupId>javax.xml.bind</groupId>
             <artifactId>jaxb-api</artifactId>
             <version>2.3.1</version>
         </dependency>
 
-        <!-- 环境变量配置支持 -->
+        <!-- 环境变量配置支持：加载.env文件中的环境变量，简化本地开发的配置管理 -->
         <dependency>
             <groupId>me.paulschwarz</groupId>
             <artifactId>spring-dotenv</artifactId>
             <version>4.0.0</version>
         </dependency>
+
+<!--        &lt;!&ndash; 添加完整的 Spring Security 启动器（核心） &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.boot</groupId>-->
+<!--            <artifactId>spring-boot-starter-security</artifactId>-->
+<!--        </dependency>-->
+
     </dependencies>
 
     <build>
         <plugins>
+            <!-- Spring Boot Maven插件：支持项目打包（jar/war）、运行（spring-boot:run）、依赖管理等 -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
 
-            <!-- Lombok Maven Plugin Configuration -->
+            <!-- Maven编译插件配置：指定Java版本、编码、注解处理器（Lombok） -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.11.0</version>
                 <configuration>
-                    <source>17</source>
-                    <target>17</target>
-                    <encoding>UTF-8</encoding>
+                    <source>17</source> <!-- 源码编译版本 -->
+                    <target>17</target> <!-- 生成字节码的版本 -->
+                    <encoding>UTF-8</encoding> <!-- 编译编码 -->
                     <compilerArgs>
-                        <arg>-parameters</arg>
+                        <arg>-parameters</arg><!-- 保留方法参数名，方便反射/MyBatis等场景使用 -->
                     </compilerArgs>
                     <annotationProcessorPaths>
+                        <!-- 指定Lombok注解处理器路径，确保编译时生效 -->
                         <path>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
