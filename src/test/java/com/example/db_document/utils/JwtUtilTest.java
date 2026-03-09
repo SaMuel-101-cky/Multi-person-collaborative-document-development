@@ -6,13 +6,20 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(SpringExtension.class)
-@Import(JwtConfig.class) // 显式导入 JwtConfig
+//@Import(JwtConfig.class) // 显式导入 JwtConfig
+@SpringBootTest
+@TestPropertySource(properties = {
+        "jwt.secretKey=+Q/XM0GPFAz5og7ZcianQHwulfGzoVpx5Kt7BSq+Dzs=",
+        "jwt.expirationTime=86400000"
+})
 class JwtUtilTest {
 
     @Autowired
@@ -58,7 +65,7 @@ class JwtUtilTest {
     }
 
     @Test
-    void testGenerateTokenWithDifferentUsers() {
+    void testGenerateTokenWithDifferentUsers() throws InterruptedException{
         String token1 = JwtUtil.generateToken(1L, "user1");
         String token2 = JwtUtil.generateToken(2L, "user2");
         String token3 = JwtUtil.generateToken(1L, "user1");

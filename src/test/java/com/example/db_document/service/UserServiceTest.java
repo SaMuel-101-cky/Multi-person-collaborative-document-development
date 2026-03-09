@@ -92,7 +92,13 @@ class UserServiceTest {
         String password = "password123";
 
         when(userMapper.selectByPhone(phone)).thenReturn(null);
-        when(userMapper.insert(any(User.class))).thenReturn(1);
+        doAnswer(invocation -> {
+            // 获取传入 insert 方法的 User 对象
+            User userToInsert = invocation.getArgument(0);
+            // 模拟数据库自增 ID（根据你实际的 ID 类型选择 Long/Integer）
+            userToInsert.setId(1L); // 如果是 Integer 类型就写 1
+            return 1; // 返回插入成功的影响行数
+        }).when(userMapper).insert(any(User.class));
 
         assertDoesNotThrow(() -> userService.registerByPhone(phone, password));
         verify(userMapper).selectByPhone(phone);
@@ -124,7 +130,11 @@ class UserServiceTest {
         String password = "password123";
 
         when(userMapper.selectByEmail(email)).thenReturn(null);
-        when(userMapper.insert(any(User.class))).thenReturn(1);
+        doAnswer(invocation -> {
+            User userToInsert = invocation.getArgument(0);
+            userToInsert.setId(1L);
+            return 1;
+        }).when(userMapper).insert(any(User.class));
 
         assertDoesNotThrow(() -> userService.registerByEmail(email, password));
         verify(userMapper).selectByEmail(email);
@@ -157,7 +167,11 @@ class UserServiceTest {
         request.setPassword("password123");
 
         when(userMapper.selectByPhone(anyString())).thenReturn(null);
-        when(userMapper.insert(any(User.class))).thenReturn(1);
+        doAnswer(invocation -> {
+            User userToInsert = invocation.getArgument(0);
+            userToInsert.setId(1L);
+            return 1;
+        }).when(userMapper).insert(any(User.class));
 
         assertDoesNotThrow(() -> userService.register(request));
     }
@@ -169,7 +183,11 @@ class UserServiceTest {
         request.setPassword("password123");
 
         when(userMapper.selectByEmail(anyString())).thenReturn(null);
-        when(userMapper.insert(any(User.class))).thenReturn(1);
+        doAnswer(invocation -> {
+            User userToInsert = invocation.getArgument(0);
+            userToInsert.setId(1L);
+            return 1;
+        }).when(userMapper).insert(any(User.class));
 
         assertDoesNotThrow(() -> userService.register(request));
     }
