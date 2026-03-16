@@ -23,6 +23,7 @@ public class DocumentSocketHandler extends BinaryWebSocketHandler {
 
     // 内存中的房间映射表：DocumentID -> 该文档下的所有连接 Session
     private final Map<Long, Set<WebSocketSession>> documentSessions = new ConcurrentHashMap<>();
+    private final Map<Long, Map<String, byte[]>> latestAwarenessByDoc = new ConcurrentHashMap<>();
 
     @Autowired
     private DocUpdateService docUpdateService;
@@ -39,6 +40,18 @@ public class DocumentSocketHandler extends BinaryWebSocketHandler {
 
         System.out.println("用户 " + userId + " 加入了文档 " + docId + " 的协作");
         // 注意：这里不再主动发送更新，而是等待客户端发送 SyncStep1 (Request) 后再回复
+
+        Map<String, byte[]> awarenessMap = latestAwarenessByDoc.get(docId);
+        if (awarenessMap != null && !awarenessMap.isEmpty()) {
+            for (Map.Entry<String, byte[]> entry : awarenessMap.entrySet()) {
+                if (session.isOpen() && !session.getId().equals(entry.getKey())) {
+                    try {
+                        session.sendMessage(new BinaryMessage(entry.getValue()));
+                    } catch (Exception e) {
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -75,6 +88,12 @@ public class DocumentSocketHandler extends BinaryWebSocketHandler {
             return;
         }
 
+        if (payload.length > 0 && payload[0] == 1) {
+            latestAwarenessByDoc
+                    .computeIfAbsent(docId, k -> new ConcurrentHashMap<>())
+                    .put(session.getId(), payload);
+        }
+
         if (role != PermissionType.VIEWER && payload.length >= 2 && payload[0] == 0 && payload[1] == 2) {
             DocUpdateCreateRequest req = new DocUpdateCreateRequest();
             req.setDocumentId(docId);
@@ -94,7 +113,7 @@ public class DocumentSocketHandler extends BinaryWebSocketHandler {
             for (WebSocketSession s : sessions) {
                 if (s.isOpen() && !s.getId().equals(session.getId())) {
                     try {
-                        s.sendMessage(message);
+                        s.sendMessage(new BinaryMessage(payload));
                     } catch (Exception e) {
                     }
                 }
@@ -117,6 +136,14 @@ public class DocumentSocketHandler extends BinaryWebSocketHandler {
             // 如果房间空了，可以考虑移除 map entry 以节省内存
             if (sessions.isEmpty()) {
                 documentSessions.remove(docId);
+            }
+        }
+
+        Map<String, byte[]> awarenessMap = latestAwarenessByDoc.get(docId);
+        if (awarenessMap != null) {
+            awarenessMap.remove(session.getId());
+            if (awarenessMap.isEmpty()) {
+                latestAwarenessByDoc.remove(docId);
             }
         }
         System.out.println("用户 " + userId + " 离开了文档 " + docId);

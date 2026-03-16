@@ -128,18 +128,19 @@ public class FileUploadService {
             return false;
         }
 
-        // 防止目录遍历攻击和空字节注入
-        if (filename.contains("..") || filename.contains("/") || filename.contains("\\")) {
+        // 防止目录遍历攻击和空字节注入 (增加了 \0 的防范)
+        if (filename.contains("..") || filename.contains("/") || filename.contains("\\") || filename.contains("\0")) {
             return false;
         }
 
-        // 检查文件名格式
-        if (!filename.matches("^[a-zA-Z0-9._-]+\\.[a-zA-Z0-9]+$")) {
-            return false;
+        // 获取文件扩展名位置
+        int dotIndex = filename.lastIndexOf(".");
+        if (dotIndex < 0 || dotIndex == filename.length() - 1) {
+            return false; // 没有扩展名或以点结尾
         }
 
         // 获取文件扩展名（转换为小写）
-        String suffix = filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
+        String suffix = filename.substring(dotIndex + 1).toLowerCase();
 
         // 检查扩展名长度
         if (suffix.length() < 1 || suffix.length() > 10) {
