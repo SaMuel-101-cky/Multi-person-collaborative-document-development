@@ -9,6 +9,7 @@ import com.example.db_document.pojo.Folder;
 import com.example.db_document.pojo.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 import java.util.List;
 
@@ -25,6 +26,7 @@ public class DirectoryService {
 
     public DirectoryContentVO getChildren(Long userId, Long currentFolderId) {
         // 1. 并行或串行查询（这里简单写串行）
+        Assert.notNull(userId, "用户ID不能为空");
         if (currentFolderId != null){
             Folder folder = folderMapper.selectById(currentFolderId);
             if (folder == null) {

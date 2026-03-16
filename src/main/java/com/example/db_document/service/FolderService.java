@@ -5,6 +5,7 @@ import com.example.db_document.mapper.FolderMapper;
 import com.example.db_document.pojo.Folder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 import java.util.Objects;
 
@@ -18,9 +19,8 @@ public class FolderService {
 
     //parentId 为 null 表示创建在根目录下,前端会维护一个currentFolderId来提供参数
     public Folder createFolder(String name, Long creatorId, Long parentId){
-        if (name == null || name.trim().isEmpty()) {
-            throw new IllegalArgumentException("文件夹名称不能为空");
-        }
+        Assert.hasText(name, "文件夹名称不能为空");
+        Assert.notNull(creatorId, "创建者ID不能为空");
 
         int count = folderMapper.countByNameAndParentId(name.trim(), parentId);
         if (count > 0) {
@@ -39,6 +39,7 @@ public class FolderService {
 
     //软删除
     public void softDeleteFolder(Long folderId){
+        Assert.notNull(folderId, "文件夹ID不能为空");
         Folder folder = folderMapper.selectById(folderId);
         if (folder == null) {
             throw new IllegalArgumentException("文件夹不存在");
@@ -54,6 +55,7 @@ public class FolderService {
     }
 
     public void moveFolder(Long folderId, Long newParentId){
+        Assert.notNull(folderId, "文件夹ID不能为空");
         Folder folder = folderMapper.selectById(folderId);
         if (folder == null) {
             throw new IllegalArgumentException("文件夹不存在");
@@ -85,8 +87,8 @@ public class FolderService {
         System.out.println("文件夹移动成功: ID " + folderId + " 到新父文件夹ID " + newParentId);
     }
 
-    //在Service层已经检查过，不等于null才去数据库找
     public Folder getFolderById(Long folderId){
+        Assert.notNull(folderId, "文件夹ID不能为空");
         Folder folder = folderMapper.selectById(folderId);
         if (folder == null) {
             throw new IllegalArgumentException("文件夹不存在");

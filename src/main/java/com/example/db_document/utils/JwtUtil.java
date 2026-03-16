@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
+import java.util.UUID;
 
 @Component
 public class JwtUtil {
@@ -25,6 +26,7 @@ public class JwtUtil {
         return Jwts.builder()
                 .claim("userId", userId)
                 .claim("nickname", nickname)
+                .setId(UUID.randomUUID().toString())
                 .setSubject(String.valueOf(userId))
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + jwtConfig.getExpirationTime()))

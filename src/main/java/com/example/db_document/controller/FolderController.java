@@ -7,6 +7,7 @@ import com.example.db_document.pojo.JsonResult;
 import com.example.db_document.service.DirectoryService;
 import com.example.db_document.service.FolderService;
 import com.example.db_document.utils.UserContext;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,7 +22,7 @@ public class FolderController {
     private DirectoryService directoryService;
 
     @PostMapping("/create")
-    public JsonResult<Folder> createFolder(@RequestBody FolderCreateRequest req){
+    public JsonResult<Folder> createFolder(@RequestBody @Valid FolderCreateRequest req){
         Long creatorId = UserContext.getUserId();
         Folder folder =  folderService.createFolder(req.getName(), creatorId, req.getParentId());
         return JsonResult.success(folder);

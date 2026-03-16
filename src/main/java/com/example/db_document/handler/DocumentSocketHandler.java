@@ -1,13 +1,18 @@
 package com.example.db_document.handler;
 
+import com.example.db_document.model.dto.DocUpdateCreateRequest;
+import com.example.db_document.pojo.DocUpdate;
 import com.example.db_document.pojo.PermissionType;
+import com.example.db_document.service.DocUpdateService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.BinaryMessage;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.BinaryWebSocketHandler;
 
-import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -17,22 +22,36 @@ import java.util.concurrent.CopyOnWriteArraySet;
 public class DocumentSocketHandler extends BinaryWebSocketHandler {
 
     // 内存中的房间映射表：DocumentID -> 该文档下的所有连接 Session
-    // 使用 ConcurrentHashMap 保证线程安全
     private final Map<Long, Set<WebSocketSession>> documentSessions = new ConcurrentHashMap<>();
+    private final Map<Long, Map<String, byte[]>> latestAwarenessByDoc = new ConcurrentHashMap<>();
+
+    @Autowired
+    private DocUpdateService docUpdateService;
 
     /**
      * 连接建立成功后调用
      */
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        // 从拦截器存入的 attributes 中取出 docId
         Long docId = (Long) session.getAttributes().get("docId");
         Long userId = (Long) session.getAttributes().get("userId");
 
-        // 将当前 session 加入到对应的文档房间中
         documentSessions.computeIfAbsent(docId, k -> new CopyOnWriteArraySet<>()).add(session);
 
         System.out.println("用户 " + userId + " 加入了文档 " + docId + " 的协作");
+        // 注意：这里不再主动发送更新，而是等待客户端发送 SyncStep1 (Request) 后再回复
+
+        Map<String, byte[]> awarenessMap = latestAwarenessByDoc.get(docId);
+        if (awarenessMap != null && !awarenessMap.isEmpty()) {
+            for (Map.Entry<String, byte[]> entry : awarenessMap.entrySet()) {
+                if (session.isOpen() && !session.getId().equals(entry.getKey())) {
+                    try {
+                        session.sendMessage(new BinaryMessage(entry.getValue()));
+                    } catch (Exception e) {
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -40,40 +59,65 @@ public class DocumentSocketHandler extends BinaryWebSocketHandler {
      */
     @Override
     protected void handleBinaryMessage(WebSocketSession session, BinaryMessage message) throws Exception {
-        // 1. 取出权限
         PermissionType role = (PermissionType) session.getAttributes().get("role");
+        Long docId = (Long) session.getAttributes().get("docId");
+        ByteBuffer payloadBuffer = message.getPayload();
+        byte[] payload = new byte[payloadBuffer.remaining()];
+        payloadBuffer.get(payload);
 
-        // 如果是 VIEWER，直接丢弃消息，不转发给其他人
-        if (role == PermissionType.VIEWER) {
-            System.out.println("拦截只读用户的写入尝试");
+        if (payload.length >= 2 && payload[0] == 0) {
+            int subtype = payload[1];
+            if (subtype == 0) {
+                Object historySent = session.getAttributes().get("historySent");
+                if (!Boolean.TRUE.equals(historySent)) {
+                    List<DocUpdate> updates = docUpdateService.listByDocumentId(docId);
+                    if (updates != null && !updates.isEmpty()) {
+                        for (DocUpdate update : updates) {
+                            if (session.isOpen()) {
+                                session.sendMessage(new BinaryMessage(update.getUpdateData()));
+                            }
+                        }
+                    }
+                    session.getAttributes().put("historySent", true);
+                }
+                return;
+            }
+        }
+
+        if (role == PermissionType.VIEWER && !(payload.length > 0 && payload[0] == 1)) {
             return;
         }
 
-        //原来的转发逻辑
-        Long docId = (Long) session.getAttributes().get("docId");
+        if (payload.length > 0 && payload[0] == 1) {
+            latestAwarenessByDoc
+                    .computeIfAbsent(docId, k -> new ConcurrentHashMap<>())
+                    .put(session.getId(), payload);
+        }
 
-        System.out.println(">>>> [收到消息] Doc:" + docId + ", 长度:" + message.getPayloadLength() + ", 来自Session:" + session.getId());
-        // 获取该房间内的所有其他用户
+        if (role != PermissionType.VIEWER && payload.length >= 2 && payload[0] == 0 && payload[1] == 2) {
+            DocUpdateCreateRequest req = new DocUpdateCreateRequest();
+            req.setDocumentId(docId);
+            req.setVectorClock(String.valueOf(System.currentTimeMillis()));
+            req.setUpdateData(payload);
+            req.setIsSnapshot(false);
+            req.setParentUpdateId(null);
+            docUpdateService.createDocUpdate(req);
+        }
+
+        if (payload.length >= 2 && payload[0] == 0 && payload[1] == 0) {
+            return;
+        }
+
         Set<WebSocketSession> sessions = documentSessions.get(docId);
         if (sessions != null) {
-
-            System.out.println("    [转发中] 房间人数: " + sessions.size());
             for (WebSocketSession s : sessions) {
-                // 排除自己，只转发给别人
                 if (s.isOpen() && !s.getId().equals(session.getId())) {
                     try {
-                        // 🛠️ 核心修改：加 try-catch 包裹发送逻辑
-                        s.sendMessage(message);
-                    } catch (IllegalStateException e) {
-                        // 这种情况通常是 Session 刚关闭，忽略即可
-                        System.out.println("⚠️ 发送失败: 会话 " + s.getId() + " 已关闭");
-                    } catch (IOException e) {
-                        System.out.println("⚠️ 发送 IO 异常: " + e.getMessage());
+                        s.sendMessage(new BinaryMessage(payload));
+                    } catch (Exception e) {
                     }
                 }
             }
-        }else {
-            System.out.println("    [警告] 房间为空！无法转发");
         }
     }
 
@@ -92,6 +136,14 @@ public class DocumentSocketHandler extends BinaryWebSocketHandler {
             // 如果房间空了，可以考虑移除 map entry 以节省内存
             if (sessions.isEmpty()) {
                 documentSessions.remove(docId);
+            }
+        }
+
+        Map<String, byte[]> awarenessMap = latestAwarenessByDoc.get(docId);
+        if (awarenessMap != null) {
+            awarenessMap.remove(session.getId());
+            if (awarenessMap.isEmpty()) {
+                latestAwarenessByDoc.remove(docId);
             }
         }
         System.out.println("用户 " + userId + " 离开了文档 " + docId);

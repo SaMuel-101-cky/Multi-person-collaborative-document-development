@@ -8,6 +8,7 @@ import com.example.db_document.pojo.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
 import java.util.Objects;
 
@@ -26,6 +27,9 @@ public class DocumentService {
 
     @Transactional(rollbackFor = Exception.class) // 开启事务：报错回滚
     public Document createDocument(String name ,Long folderId ,String content, Long creatorId){
+        Assert.notNull(creatorId, "创建者ID不能为空");
+        Assert.notNull(name, "文档名称不能为空");
+
         String docName = (name == null || name.trim().isEmpty())
                 ? "无标题文档"
                 : name;
@@ -68,6 +72,7 @@ public class DocumentService {
 
     //在Controller层用AOP检查了权限
     public void softDeleteDocument(Long documentId){
+        Assert.notNull(documentId, "文档ID不能为空");
         Document document = documentMapper.selectById(documentId);
         if (document == null) {
             throw new IllegalArgumentException("文件不存在");
@@ -83,6 +88,7 @@ public class DocumentService {
 
     //检查权限，暂时没用到这个
     public void moveDocument(Long documentId, Long newFolderId){
+        Assert.notNull(documentId, "文档ID不能为空");
         Document document = documentMapper.selectById(documentId);
         if (document == null) {
             throw new IllegalArgumentException("文档不存在");
@@ -107,6 +113,7 @@ public class DocumentService {
 
     //检查权限
     public DocumentDetailVO getDocumentById(Long id){
+        Assert.notNull(id, "文档ID不能为空");
         Document document = documentMapper.selectById(id);
         if (document == null) {
             throw new IllegalArgumentException("文档不存在");
@@ -126,6 +133,9 @@ public class DocumentService {
     //同样检查权限
     @Transactional(rollbackFor = Exception.class) // 开启事务：报错回滚
     public Document updateDocumentInfo(Long userId, DocumentUpdateRequest req){
+        Assert.notNull(userId, "用户ID不能为空");
+        Assert.notNull(req, "更新请求不能为空");
+        Assert.notNull(req.getDocumentId(), "文档ID不能为空");
         Long documentId = req.getDocumentId();
         Document document = documentMapper.selectById(documentId);
         if (document == null) {
