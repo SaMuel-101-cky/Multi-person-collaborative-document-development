@@ -2,6 +2,7 @@ package com.example.db_document.interceptor;
 
 import com.example.db_document.pojo.Permission;
 import com.example.db_document.service.PermissionService;
+import com.example.db_document.utils.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.ServerHttpRequest;
@@ -36,13 +37,31 @@ public class DocumentHandshakeInterceptor implements HandshakeInterceptor {
             String docIdStr = parts[parts.length - 1]; // 假设 docId 在最后
             Long docId = Long.parseLong(docIdStr);
 
-            String userIdStr = httpServletRequest.getParameter("userId");
-
-            if (userIdStr == null) {
-                return false; // 拒绝连接：未登录
+            String token = httpServletRequest.getParameter("token");
+            if (token == null || token.trim().isEmpty()) {
+                token = httpServletRequest.getHeader("Authorization");
             }
 
-            Long userId = Long.parseLong(userIdStr);
+            if (token == null || token.trim().isEmpty()) {
+                return false;
+            }
+
+            if (token.startsWith("Bearer ")) {
+                token = token.substring("Bearer ".length());
+            }
+
+            Long userId = JwtUtil.parseToken(token);
+            if (userId == null) {
+                return false;
+            }
+
+            String userIdStr = httpServletRequest.getParameter("userId");
+            if (userIdStr != null) {
+                Long paramUserId = Long.parseLong(userIdStr);
+                if (!paramUserId.equals(userId)) {
+                    return false;
+                }
+            }
 
             // 3. 查库鉴权 (根据你的 permission 表),鉴定的是什么权限？除了viewer以外
             Permission permission = permissionService.getDocumentPermission(docId, userId);

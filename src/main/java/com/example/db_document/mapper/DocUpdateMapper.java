@@ -10,6 +10,8 @@ import java.util.List;
 public interface DocUpdateMapper {
     int insert(DocUpdate docUpdate);
 
+    int insertBatch(@Param("list") List<DocUpdate> list);
+
     DocUpdate selectById(@Param("id") Long id);
 
     DocUpdate selectLatestByDocumentId(@Param("documentId") Long documentId);

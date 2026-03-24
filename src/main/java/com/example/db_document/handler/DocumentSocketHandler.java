@@ -1,8 +1,8 @@
 package com.example.db_document.handler;
 
-import com.example.db_document.model.dto.DocUpdateCreateRequest;
 import com.example.db_document.pojo.DocUpdate;
 import com.example.db_document.pojo.PermissionType;
+import com.example.db_document.service.DocUpdateBuffer;
 import com.example.db_document.service.DocUpdateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -27,6 +27,9 @@ public class DocumentSocketHandler extends BinaryWebSocketHandler {
 
     @Autowired
     private DocUpdateService docUpdateService;
+
+    @Autowired
+    private DocUpdateBuffer docUpdateBuffer;
 
     /**
      * 连接建立成功后调用
@@ -78,6 +81,14 @@ public class DocumentSocketHandler extends BinaryWebSocketHandler {
                             }
                         }
                     }
+                    List<byte[]> pending = docUpdateBuffer.snapshotPendingPayloads(docId);
+                    if (!pending.isEmpty()) {
+                        for (byte[] p : pending) {
+                            if (session.isOpen()) {
+                                session.sendMessage(new BinaryMessage(p));
+                            }
+                        }
+                    }
                     session.getAttributes().put("historySent", true);
                 }
                 return;
@@ -95,13 +106,7 @@ public class DocumentSocketHandler extends BinaryWebSocketHandler {
         }
 
         if (role != PermissionType.VIEWER && payload.length >= 2 && payload[0] == 0 && payload[1] == 2) {
-            DocUpdateCreateRequest req = new DocUpdateCreateRequest();
-            req.setDocumentId(docId);
-            req.setVectorClock(String.valueOf(System.currentTimeMillis()));
-            req.setUpdateData(payload);
-            req.setIsSnapshot(false);
-            req.setParentUpdateId(null);
-            docUpdateService.createDocUpdate(req);
+            docUpdateBuffer.enqueueUpdate(docId, payload);
         }
 
         if (payload.length >= 2 && payload[0] == 0 && payload[1] == 0) {
@@ -136,6 +141,7 @@ public class DocumentSocketHandler extends BinaryWebSocketHandler {
             // 如果房间空了，可以考虑移除 map entry 以节省内存
             if (sessions.isEmpty()) {
                 documentSessions.remove(docId);
+                docUpdateBuffer.flushAsync(docId);
             }
         }
 

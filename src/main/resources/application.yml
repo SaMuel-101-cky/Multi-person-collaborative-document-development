@@ -41,3 +41,7 @@ file:
   virus-scan-enabled: false
   # 上传速率限制（每分钟）
   rate-limit: 10
+
+doc-update:
+  flush-interval-ms: 500
+  max-batch-size: 10

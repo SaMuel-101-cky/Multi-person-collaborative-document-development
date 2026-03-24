@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -18,6 +19,44 @@ public class DocUpdateService {
     private DocUpdateMapper docUpdateMapper;
 
     public DocUpdateService() {
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void createDocUpdatesBatch(List<DocUpdateCreateRequest> reqs) {
+        Assert.notEmpty(reqs, "更新请求不能为空");
+        Long documentId = reqs.get(0).getDocumentId();
+        Assert.notNull(documentId, "文档ID不能为空");
+
+        for (DocUpdateCreateRequest req : reqs) {
+            Assert.notNull(req, "更新请求不能为空");
+            Assert.notNull(req.getDocumentId(), "文档ID不能为空");
+            Assert.isTrue(documentId.equals(req.getDocumentId()), "批量更新仅支持同一文档");
+            Assert.notNull(req.getVectorClock(), "vectorClock不能为空");
+            Assert.notNull(req.getUpdateData(), "updateData不能为空");
+        }
+
+        DocUpdate latest = docUpdateMapper.selectLatestByDocumentId(documentId);
+        Long parentUpdateId = latest == null ? null : latest.getId();
+
+        List<DocUpdate> entities = new ArrayList<>(reqs.size());
+        for (DocUpdateCreateRequest req : reqs) {
+            if (req.getParentUpdateId() == null) {
+                req.setParentUpdateId(parentUpdateId);
+            }
+
+            DocUpdate docUpdate = new DocUpdate();
+            docUpdate.setDocumentId(req.getDocumentId());
+            docUpdate.setVectorClock(req.getVectorClock());
+            docUpdate.setUpdateData(req.getUpdateData());
+            docUpdate.setIsSnapshot(req.getIsSnapshot());
+            docUpdate.setParentUpdateId(req.getParentUpdateId());
+            entities.add(docUpdate);
+        }
+
+        int rows = docUpdateMapper.insertBatch(entities);
+        if (rows == 0) {
+            throw new BusinessException("新增更新失败");
+        }
     }
 
     @Transactional(rollbackFor = Exception.class)
