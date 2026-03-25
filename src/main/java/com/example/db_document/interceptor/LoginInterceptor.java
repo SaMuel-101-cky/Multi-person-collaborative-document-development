@@ -33,6 +33,16 @@ public class LoginInterceptor implements HandlerInterceptor {
             return false;
         }
 
+        // 3.5 判断 Token 是否已被踢出
+        if (JwtUtil.isKickedOut(userId, token)) {
+            response.setStatus(401);
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write("{\"code\":401,\"msg\":\"KICKED_OUT\",\"message\":\"KICKED_OUT\",\"data\":null}");
+            response.getWriter().flush();
+            return false;
+        }
+
         // 4. 【关键】将 userId 存入 ThreadLocal
         UserContext.setUserId(userId);
 

@@ -55,6 +55,11 @@ public class DocumentHandshakeInterceptor implements HandshakeInterceptor {
                 return false;
             }
 
+            // 判断 Token 是否已被踢出
+            if (JwtUtil.isKickedOut(userId, token)) {
+                return false;
+            }
+
             String userIdStr = httpServletRequest.getParameter("userId");
             if (userIdStr != null) {
                 Long paramUserId = Long.parseLong(userIdStr);

@@ -24,6 +24,9 @@ public class DocumentSocketHandler extends BinaryWebSocketHandler {
     // 内存中的房间映射表：DocumentID -> 该文档下的所有连接 Session
     private final Map<Long, Set<WebSocketSession>> documentSessions = new ConcurrentHashMap<>();
     private final Map<Long, Map<String, byte[]>> latestAwarenessByDoc = new ConcurrentHashMap<>();
+    
+    // 全局用户会话映射：UserId -> 该用户所有的连接 Session
+    private static final Map<Long, Set<WebSocketSession>> userSessions = new ConcurrentHashMap<>();
 
     @Autowired
     private DocUpdateService docUpdateService;
@@ -40,6 +43,7 @@ public class DocumentSocketHandler extends BinaryWebSocketHandler {
         Long userId = (Long) session.getAttributes().get("userId");
 
         documentSessions.computeIfAbsent(docId, k -> new CopyOnWriteArraySet<>()).add(session);
+        userSessions.computeIfAbsent(userId, k -> new CopyOnWriteArraySet<>()).add(session);
 
         System.out.println("用户 " + userId + " 加入了文档 " + docId + " 的协作");
         // 注意：这里不再主动发送更新，而是等待客户端发送 SyncStep1 (Request) 后再回复
@@ -144,6 +148,14 @@ public class DocumentSocketHandler extends BinaryWebSocketHandler {
                 docUpdateBuffer.flushAsync(docId);
             }
         }
+        
+        Set<WebSocketSession> uSessions = userSessions.get(userId);
+        if (uSessions != null) {
+            uSessions.remove(session);
+            if (uSessions.isEmpty()) {
+                userSessions.remove(userId);
+            }
+        }
 
         Map<String, byte[]> awarenessMap = latestAwarenessByDoc.get(docId);
         if (awarenessMap != null) {
@@ -153,5 +165,21 @@ public class DocumentSocketHandler extends BinaryWebSocketHandler {
             }
         }
         System.out.println("用户 " + userId + " 离开了文档 " + docId);
+    }
+    
+    /**
+     * 踢出某个用户的所有 WebSocket 连接
+     */
+    public static void kickUser(Long userId) {
+        Set<WebSocketSession> uSessions = userSessions.get(userId);
+        if (uSessions != null) {
+            for (WebSocketSession session : uSessions) {
+                try {
+                    session.close(new CloseStatus(4000, "KICKED_OUT"));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 }

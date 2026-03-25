@@ -9,14 +9,46 @@ import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class JwtUtil {
     private static JwtConfig jwtConfig;
+    
+    // 存储用户当前的有效 Token： userId -> token
+    private static final ConcurrentHashMap<Long, String> activeTokens = new ConcurrentHashMap<>();
 
     @Autowired
     public void setJwtConfig(JwtConfig jwtConfig) {
         JwtUtil.jwtConfig = jwtConfig;
+    }
+
+    /**
+     * 保存用户最新 Token (登录时调用)
+     */
+    public static void saveActiveToken(Long userId, String token) {
+        activeTokens.put(userId, token);
+    }
+
+    /**
+     * 判断 Token 是否已被踢出
+     */
+    public static boolean isKickedOut(Long userId, String token) {
+        String activeToken = activeTokens.get(userId);
+        if (activeToken != null && !activeToken.equals(token)) {
+            return true;
+        }
+        if (activeToken == null) {
+            activeTokens.putIfAbsent(userId, token);
+        }
+        return false;
+    }
+    
+    /**
+     * 移除用户 Token (退出登录时调用)
+     */
+    public static void removeActiveToken(Long userId) {
+        activeTokens.remove(userId);
     }
 
     /**
