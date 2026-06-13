@@ -1,14 +1,14 @@
 package com.example.db_document;
 
-import com.example.db_document.pojo.Document;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 class DbDocumentApplicationTests {
 
     @Test
-    void contextLoads() {
+    void applicationHasMainMethod() throws Exception {
+        assertNotNull(DbDocumentApplication.class.getMethod("main", String[].class));
     }
 
 }

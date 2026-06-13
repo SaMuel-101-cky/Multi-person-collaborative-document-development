@@ -1,8 +1,8 @@
 package com.example.db_document.handler;
 
-import com.example.db_document.model.dto.DocUpdateCreateRequest;
 import com.example.db_document.pojo.DocUpdate;
 import com.example.db_document.pojo.PermissionType;
+import com.example.db_document.service.DocUpdateBuffer;
 import com.example.db_document.service.DocUpdateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -24,9 +24,15 @@ public class DocumentSocketHandler extends BinaryWebSocketHandler {
     // 内存中的房间映射表：DocumentID -> 该文档下的所有连接 Session
     private final Map<Long, Set<WebSocketSession>> documentSessions = new ConcurrentHashMap<>();
     private final Map<Long, Map<String, byte[]>> latestAwarenessByDoc = new ConcurrentHashMap<>();
+    
+    // 全局用户会话映射：UserId -> 该用户所有的连接 Session
+    private static final Map<Long, Set<WebSocketSession>> userSessions = new ConcurrentHashMap<>();
 
     @Autowired
     private DocUpdateService docUpdateService;
+
+    @Autowired
+    private DocUpdateBuffer docUpdateBuffer;
 
     /**
      * 连接建立成功后调用
@@ -37,6 +43,7 @@ public class DocumentSocketHandler extends BinaryWebSocketHandler {
         Long userId = (Long) session.getAttributes().get("userId");
 
         documentSessions.computeIfAbsent(docId, k -> new CopyOnWriteArraySet<>()).add(session);
+        userSessions.computeIfAbsent(userId, k -> new CopyOnWriteArraySet<>()).add(session);
 
         System.out.println("用户 " + userId + " 加入了文档 " + docId + " 的协作");
         // 注意：这里不再主动发送更新，而是等待客户端发送 SyncStep1 (Request) 后再回复
@@ -78,6 +85,14 @@ public class DocumentSocketHandler extends BinaryWebSocketHandler {
                             }
                         }
                     }
+                    List<byte[]> pending = docUpdateBuffer.snapshotPendingPayloads(docId);
+                    if (!pending.isEmpty()) {
+                        for (byte[] p : pending) {
+                            if (session.isOpen()) {
+                                session.sendMessage(new BinaryMessage(p));
+                            }
+                        }
+                    }
                     session.getAttributes().put("historySent", true);
                 }
                 return;
@@ -95,13 +110,7 @@ public class DocumentSocketHandler extends BinaryWebSocketHandler {
         }
 
         if (role != PermissionType.VIEWER && payload.length >= 2 && payload[0] == 0 && payload[1] == 2) {
-            DocUpdateCreateRequest req = new DocUpdateCreateRequest();
-            req.setDocumentId(docId);
-            req.setVectorClock(String.valueOf(System.currentTimeMillis()));
-            req.setUpdateData(payload);
-            req.setIsSnapshot(false);
-            req.setParentUpdateId(null);
-            docUpdateService.createDocUpdate(req);
+            docUpdateBuffer.enqueueUpdate(docId, payload);
         }
 
         if (payload.length >= 2 && payload[0] == 0 && payload[1] == 0) {
@@ -136,6 +145,15 @@ public class DocumentSocketHandler extends BinaryWebSocketHandler {
             // 如果房间空了，可以考虑移除 map entry 以节省内存
             if (sessions.isEmpty()) {
                 documentSessions.remove(docId);
+                docUpdateBuffer.flushAsync(docId);
+            }
+        }
+        
+        Set<WebSocketSession> uSessions = userSessions.get(userId);
+        if (uSessions != null) {
+            uSessions.remove(session);
+            if (uSessions.isEmpty()) {
+                userSessions.remove(userId);
             }
         }
 
@@ -147,5 +165,21 @@ public class DocumentSocketHandler extends BinaryWebSocketHandler {
             }
         }
         System.out.println("用户 " + userId + " 离开了文档 " + docId);
+    }
+    
+    /**
+     * 踢出某个用户的所有 WebSocket 连接
+     */
+    public static void kickUser(Long userId) {
+        Set<WebSocketSession> uSessions = userSessions.get(userId);
+        if (uSessions != null) {
+            for (WebSocketSession session : uSessions) {
+                try {
+                    session.close(new CloseStatus(4000, "KICKED_OUT"));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 }

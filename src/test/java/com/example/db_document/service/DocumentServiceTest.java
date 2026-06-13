@@ -70,13 +70,13 @@ class DocumentServiceTest {
     }
 
     @Test
-    void testCreateDocument_NullName() {
-        String name = null;
+    void testCreateDocument_EmptyName_DefaultsToUntitled() {
+        String name = "   ";
         Long folderId = null;
         String content = "Test content";
         Long creatorId = 1L;
 
-        when(documentMapper.countByNameAndFolderId(nullable(String.class), nullable(Long.class))).thenReturn(0);
+        when(documentMapper.countByNameAndFolderId(eq("无标题文档"), isNull())).thenReturn(0);
         when(documentMapper.insert(any(Document.class))).thenAnswer(invocation -> {
             Document doc = invocation.getArgument(0);
             doc.setId(100L);

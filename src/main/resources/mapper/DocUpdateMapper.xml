@@ -11,6 +11,15 @@
             (#{documentId}, #{vectorClock}, #{updateData,jdbcType=BLOB}, #{isSnapshot}, #{parentUpdateId})
     </insert>
 
+    <insert id="insertBatch">
+        INSERT INTO doc_updates
+            (document_id, vector_clock, update_data, is_snapshot, parent_update_id)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.documentId}, #{item.vectorClock}, #{item.updateData,jdbcType=BLOB}, #{item.isSnapshot}, #{item.parentUpdateId})
+        </foreach>
+    </insert>
+
     <select id="selectById" resultType="com.example.db_document.pojo.DocUpdate">
         SELECT *
         FROM doc_updates

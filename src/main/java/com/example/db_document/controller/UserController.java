@@ -1,5 +1,6 @@
 package com.example.db_document.controller;
 
+import com.example.db_document.handler.DocumentSocketHandler;
 import com.example.db_document.model.dto.*;
 import com.example.db_document.model.vo.LoginRespVO;
 import com.example.db_document.pojo.JsonResult;
@@ -33,9 +34,19 @@ public class UserController {
     public JsonResult<LoginRespVO> login(@RequestBody  LoginRequest req) {
         User user = userService.login(req.getAccount(), req.getPassword());
         String token = JwtUtil.generateToken(user.getId(), user.getNickname());
+        
+        // 登录时断开该用户已有的 WebSocket 连接，并保存新 token 踢出旧 HTTP token
+        DocumentSocketHandler.kickUser(user.getId());
+        JwtUtil.saveActiveToken(user.getId(), token);
         user.setPassword(null);
         LoginRespVO resp = new LoginRespVO(token, user);
         return JsonResult.success(resp);
+    }
+
+    @GetMapping("/ping")
+    public JsonResult<String> ping() {
+        UserContext.getUserId();
+        return JsonResult.success("ok");
     }
 
     @PostMapping("/update/avatar")
