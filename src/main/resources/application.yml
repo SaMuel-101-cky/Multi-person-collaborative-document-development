@@ -23,8 +23,8 @@ spring:
       max-request-size: 5MB
 
 mybatis:
-  type-aliases-package: com.example.db_document.pojo
-  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.example.db_document.pojo            #起别名
+  mapper-locations: classpath:mapper/*.xml               #mapper映射文件路径
   configuration:
     # 开启驼峰命名映射
     map-underscore-to-camel-case: true

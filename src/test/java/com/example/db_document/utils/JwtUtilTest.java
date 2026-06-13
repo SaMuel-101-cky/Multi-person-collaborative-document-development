@@ -1,39 +1,30 @@
 package com.example.db_document.utils;
 
 import com.example.db_document.config.JwtConfig;
-import io.jsonwebtoken.Claims;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.util.ReflectionTestUtils;
+
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@ExtendWith(SpringExtension.class)
-//@Import(JwtConfig.class) // 显式导入 JwtConfig
-@SpringBootTest
-@TestPropertySource(properties = {
-        "jwt.secretKey=+Q/XM0GPFAz5og7ZcianQHwulfGzoVpx5Kt7BSq+Dzs=",
-        "jwt.expirationTime=86400000"
-})
 class JwtUtilTest {
-
-    @Autowired
-    private JwtConfig jwtConfig;
-
-    private JwtUtil jwtUtil;
 
     private Long testUserId = 1L;
     private String testNickname = "testuser";
 
     @BeforeEach
     void setUp() {
-        jwtUtil = new JwtUtil();
-        jwtUtil.setJwtConfig(jwtConfig);
+        JwtConfig jwtConfig = new JwtConfig();
+        jwtConfig.setSecretKey("+Q/XM0GPFAz5og7ZcianQHwulfGzoVpx5Kt7BSq+Dzs=");
+        jwtConfig.setExpirationTime(86400000);
+        new JwtUtil().setJwtConfig(jwtConfig);
+
+        Object activeTokens = ReflectionTestUtils.getField(JwtUtil.class, "activeTokens");
+        if (activeTokens instanceof ConcurrentHashMap<?, ?> map) {
+            map.clear();
+        }
     }
 
     @Test

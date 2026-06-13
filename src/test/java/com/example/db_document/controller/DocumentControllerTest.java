@@ -2,88 +2,136 @@ package com.example.db_document.controller;
 
 import com.example.db_document.model.dto.DocumentCreateRequest;
 import com.example.db_document.model.dto.DocumentUpdateRequest;
+import com.example.db_document.model.vo.DocumentDetailVO;
+import com.example.db_document.model.vo.SharedContentVO;
+import com.example.db_document.pojo.Document;
+import com.example.db_document.pojo.JsonResult;
 import com.example.db_document.service.DocumentService;
+import com.example.db_document.service.SharedService;
+import com.example.db_document.utils.UserContext;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-//import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.util.ReflectionTestUtils;
 
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-@SpringBootTest
-@AutoConfigureMockMvc
 class DocumentControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
-
-    @MockitoBean
     private DocumentService documentService;
+    private SharedService sharedService;
+    private DocumentController documentController;
 
-    @Test
-    void testCreateDocument() throws Exception {
-        DocumentCreateRequest request = new DocumentCreateRequest();
-        request.setName("Test Document");
-        request.setContent("Test content");
+    @BeforeEach
+    void setUp() {
+        documentService = mock(DocumentService.class);
+        sharedService = mock(SharedService.class);
+        documentController = new DocumentController();
+        ReflectionTestUtils.setField(documentController, "documentService", documentService);
+        ReflectionTestUtils.setField(documentController, "sharedService", sharedService);
+    }
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/document/create")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"documentName\":\"Test Document\",\"content\":\"Test content\"}")
-                .header("Authorization", "Bearer test-token"))
-                .andExpect(status().isOk());
+    @AfterEach
+    void tearDown() {
+        UserContext.remove();
     }
 
     @Test
-    void testDeleteDocument() throws Exception {
+    void createDocument_delegatesToService() {
+        UserContext.setUserId(1L);
+
+        DocumentCreateRequest req = new DocumentCreateRequest();
+        req.setName("Test Document");
+        req.setFolderId(10L);
+        req.setContent("Test content");
+
+        Document created = new Document();
+        created.setId(100L);
+        created.setName("Test Document");
+
+        when(documentService.createDocument("Test Document", 10L, "Test content", 1L)).thenReturn(created);
+
+        JsonResult<Document> resp = documentController.createDocument(req);
+
+        assertEquals(200, resp.getCode());
+        assertEquals("success", resp.getMsg());
+        assertEquals(created, resp.getData());
+        verify(documentService).createDocument("Test Document", 10L, "Test content", 1L);
+    }
+
+    @Test
+    void deleteDocument_delegatesToService() {
+        UserContext.setUserId(1L);
         Long documentId = 1L;
-        mockMvc.perform(MockMvcRequestBuilders.delete("/api/document/delete/{documentId}", documentId)
-                .header("Authorization", "Bearer test-token"))
-                .andExpect(status().isOk());
+        JsonResult<Void> resp = documentController.deleteDocument(documentId);
+
+        assertEquals(200, resp.getCode());
+        assertNull(resp.getData());
+        verify(documentService).softDeleteDocument(documentId);
     }
 
     @Test
-    void testMoveDocument() throws Exception {
+    void moveDocument_delegatesToService() {
+        UserContext.setUserId(1L);
         Long documentId = 1L;
         Long folderId = 1L;
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/document/move")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"documentId\":1,\"folderId\":1}")
-                .header("Authorization", "Bearer test-token"))
-                .andExpect(status().isOk());
+        JsonResult<Void> resp = documentController.moveDocument(documentId, folderId);
+
+        assertEquals(200, resp.getCode());
+        verify(documentService).moveDocument(documentId, folderId);
     }
 
     @Test
-    void testUpdateDocumentInfo() throws Exception {
-        DocumentUpdateRequest request = new DocumentUpdateRequest();
-        request.setDocumentId(1L);
-        request.setName("Updated Document");
-        request.setContent("Updated content");
+    void updateDocumentInfo_delegatesToService() {
+        UserContext.setUserId(1L);
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/document/update/info")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"documentId\":1,\"documentName\":\"Updated Document\",\"content\":\"Updated content\"}")
-                .header("Authorization", "Bearer test-token"))
-                .andExpect(status().isOk());
+        DocumentUpdateRequest req = new DocumentUpdateRequest();
+        req.setDocumentId(1L);
+        req.setName("Updated Document");
+        req.setContent("Updated content");
+
+        Document updated = new Document();
+        updated.setId(1L);
+        updated.setName("Updated Document");
+
+        when(documentService.updateDocumentInfo(1L, req)).thenReturn(updated);
+
+        JsonResult<Document> resp = documentController.updateDocumentInfo(req);
+
+        assertEquals(200, resp.getCode());
+        assertEquals(updated, resp.getData());
+        verify(documentService).updateDocumentInfo(1L, req);
     }
 
     @Test
-    void testDocumentDetail() throws Exception {
+    void getDocumentById_delegatesToService() {
         Long documentId = 1L;
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/document/detail/{documentId}", documentId)
-                .header("Authorization", "Bearer test-token"))
-                .andExpect(status().isOk());
+        DocumentDetailVO vo = new DocumentDetailVO();
+        when(documentService.getDocumentById(documentId)).thenReturn(vo);
+
+        JsonResult<DocumentDetailVO> resp = documentController.getDocumentById(documentId);
+
+        assertEquals(200, resp.getCode());
+        assertEquals(vo, resp.getData());
+        verify(documentService).getDocumentById(documentId);
     }
 
     @Test
-    void testSharedDocuments() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/document/shared")
-                .header("Authorization", "Bearer test-token"))
-                .andExpect(status().isOk());
+    void getSharedDocuments_delegatesToService() {
+        UserContext.setUserId(9L);
+        SharedContentVO vo = new SharedContentVO();
+        when(sharedService.getSharedDocuments(9L)).thenReturn(vo);
+
+        JsonResult<SharedContentVO> resp = documentController.getSharedDocuments();
+
+        assertEquals(200, resp.getCode());
+        assertEquals(vo, resp.getData());
+        verify(sharedService).getSharedDocuments(9L);
     }
 }
