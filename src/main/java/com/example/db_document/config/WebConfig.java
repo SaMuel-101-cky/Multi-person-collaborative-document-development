@@ -11,7 +11,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-    @Value("${file.upload-dir}")
+    @Value("${file.upload-dir}")     //springboot，从配置文件赋值
     private String uploadDir;
 
     @Override
@@ -25,12 +25,13 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**") // 允许对所有 API 路径进行 CORS 访问
-                .allowedOrigins("http://localhost:5173") // 明确允许前端的源
+                .allowedOriginPatterns("*")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") // 允许的 HTTP 方法
                 .allowedHeaders("*") // 允许所有请求头
                 .allowCredentials(true) // 允许携带认证信息
                 .maxAge(3600);
     }
+    //                .allowedOrigins("http://localhost:5173") // 明确允许前端的源
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
