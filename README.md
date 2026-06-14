@@ -16,6 +16,10 @@
     <img src="https://img.shields.io/badge/quality-SonarQube-4E9BCD?logo=sonarqube&logoColor=white" alt="SonarQube">
     <img src="https://img.shields.io/badge/license-MIT-blue" alt="License">
   </p>
+  <p align="center">
+    <a href="README.md"><img src="https://img.shields.io/badge/简体中文-Readme-red?logo=googletranslate&logoColor=white" alt="中文"></a>
+    <a href="README_EN.md"><img src="https://img.shields.io/badge/English-Readme-blue?logo=googletranslate&logoColor=white" alt="English"></a>
+  </p>
 </p>
 
 ---
@@ -24,7 +28,7 @@
 
 DB-Document 是一个**支持多人实时协作**的在线文档管理系统后端。基于 Spring Boot 构建，采用 Y.js + WebSocket 实现类似 Google Docs 的实时同步编辑体验，配合缓冲池批量落库策略在高并发协作场景下大幅降低数据库 IO 压力。
 
-> 🔗 前端仓库：[Frontend](https://github.com/jkllvfree/Frontend) · React + TipTap + Yjs
+> 🔗 前端仓库：[Frontend](https://github.com/SaMuel-101-cky/My-Cloud-Document-Interface) · React + TipTap + Yjs
 
 ## ✨ 核心亮点
 
