@@ -16,7 +16,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 
-@CrossOrigin(origins = "http://localhost:5173")
+//@CrossOrigin(origins = "http://localhost:5173")       这行意思是，只允许本地运行的5173端口的前端web访问
+@CrossOrigin(origins = "*")
 
 @RestController
 @RequestMapping("/api/user")

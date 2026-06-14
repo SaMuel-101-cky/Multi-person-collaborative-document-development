@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "jwt")
 @Data
 public class JwtConfig {
-    private String secretKey;
+    private String secretKey;                  // 密钥，用于签名和验证JWT
     private long expirationTime = 86400000; // 默认24小时
 
     // 可以在这里添加更多JWT相关配置

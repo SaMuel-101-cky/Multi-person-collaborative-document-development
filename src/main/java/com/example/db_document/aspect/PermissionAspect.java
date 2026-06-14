@@ -76,6 +76,7 @@ public class PermissionAspect {
 
     // 辅助：判断是否是我们自己写的类 (简单的过滤逻辑)
     private boolean isUserDefinedClass(Object arg) {
+        if (arg == null)  return false;
         String className = arg.getClass().getName();
         // 排除 java.*, javax.*, org.springframework.* 等系统类
         return !className.startsWith("java.")
